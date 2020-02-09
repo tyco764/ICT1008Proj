@@ -24,21 +24,21 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (Login, MainPage):
+        for F in (SearchPage, MainPage):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
 
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("Login")
+        self.show_frame("MainPage")
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
 
 
-class Login(tk.Frame):
+class MainPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -61,26 +61,20 @@ class Login(tk.Frame):
         self.end.bind('<Return>', )
         #lambda event: guifunc.check_password(self, self.user_txt.get(), self.pass_txt.get()))
 
-        self.change_btn = tk.Button(self, text="Search", command=lambda: self.search())
+        self.change_btn = tk.Button(self, text="Search", command=lambda: [controller.show_frame("SearchPage")])
         self.change_btn.place(x=200, y=290, width=100, height=50)
 
 
-class MainPage(tk.Frame):
+class SearchPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        sample_button = tk.Button(self, border=0, command=lambda: guifunc.button_click(self))
-        sample_button.place(x=25, y=100)
-
-        button = tk.Button(self, text="Logout",
-                           command=lambda: [controller.show_frame("Login"),
-                                            self.controller.frames["Login"].user_txt.focus()])
+        button = tk.Button(self, text="Return",
+                           command=lambda: [controller.show_frame("MainPage")])
         button.pack()
         button.place(x=225, y=300)
-
-        self.modify = tk.Button(self, text='Modify Users', command=lambda: guifunc.modify(self))
 
 
 if __name__ == "__main__":
