@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter.font import Font
+import tkinter.filedialog as filedialog
 import matplotlib.pyplot as plt
 import mplleaflet as mpl
 
@@ -17,18 +18,51 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (SearchPage, MainPage):
+        for F in (StartPage, SearchPage, MainPage,):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
 
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("MainPage")
+        self.show_frame("StartPage")
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
+
+
+class StartPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        h1 = Font(family="Helvetica", size=20)  # weight="bold"
+        hdblabel = tk.Label(self, text="HDB Excel", font=h1)
+        hdblabel.place(x=90, y=90)
+
+        # self.hdb = tk.Entry(self, justify='left', state='disabled')
+        entry_hdb = tk.StringVar()
+        hdb_file = tk.Entry(self, text=entry_hdb, state='disabled')
+        hdb_file.place(x=250, y=100)
+        hdb_filebtn = tk.Button(self, text='HDB File',
+                                command=lambda: enter_file(self, entry_hdb, "file1"))
+        hdb_filebtn.place(x=380, y=95)
+
+        submit_btn = tk.Button(self, text='Submit', command=lambda: [controller.show_frame("SearchPage")])
+        submit_btn.place(x=150, y=245)
+
+
+def enter_file(self, entry, file_number):
+    # set default filetype and restrict user to select CSV files only
+    filetype = [("CSV file", "*.csv")]
+    filename = filedialog.askopenfilename(initialdir="/", title="Select file", defaultextension=".csv",
+                                          filetypes=filetype)
+
+    # parent.lift()
+    entry.set(filename)
+    # self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
 
 
 class MainPage(tk.Frame):
@@ -74,14 +108,14 @@ class SearchPage(tk.Frame):
 
 
 def displaymap(self):
-    lat = [1.39833, 1.39641, 1.39832,  1.40639, 1.39957, 1.40069]
+    lat = [1.39833, 1.39641, 1.39832, 1.40639, 1.39957, 1.40069]
     long = [103.90495, 103.90718, 103.90495, 103.90880, 103.90973, 103.91338]
 
     plt.plot(long, lat, 'b')
     plt.plot(long, lat, 'rs')
 
     plt.draw()
-    #plt.show()
+    # plt.show()
     mpl.show()
 
 
