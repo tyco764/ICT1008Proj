@@ -3,7 +3,6 @@ from tkinter.font import Font
 import tkinter.filedialog as filedialog
 import matplotlib.pyplot as plt
 import mplleaflet as mpl
-import overpy
 
 
 class SampleApp(tk.Tk):
@@ -12,9 +11,6 @@ class SampleApp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         # Create a container to stack all the frames
         # then raise the one we want visible
-
-        self.start = tk.StringVar()
-        self.end = tk.StringVar()
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -54,7 +50,7 @@ class StartPage(tk.Frame):
                                 command=lambda: enter_file(self, entry_hdb, "file1"))
         hdb_filebtn.place(x=380, y=95)
 
-        submit_btn = tk.Button(self, text='Submit', command=lambda: [controller.show_frame("MainPage")])
+        submit_btn = tk.Button(self, text='Submit', command=lambda: [controller.show_frame("SearchPage")])
         submit_btn.place(x=150, y=245)
 
 
@@ -79,7 +75,7 @@ class MainPage(tk.Frame):
         startlabel = tk.Label(self, text="Start:", font=h1)
         startlabel.place(x=90, y=98)
 
-        self.start = tk.Entry(self, text=self.controller.start, justify='left')
+        self.start = tk.Entry(self, justify='left')
         self.start.focus()
         self.start.place(x=203, y=100, width=250, height=50)
 
@@ -87,12 +83,12 @@ class MainPage(tk.Frame):
         endlabel.place(x=90, y=180)
 
         large_font = ('Verdana', 14)
-        self.end = tk.Entry(self, text=self.controller.end, justify='left', font=large_font)
+        self.end = tk.Entry(self, justify='left', font=large_font)
         self.end.place(x=203, y=180, width=250, height=50)
         self.end.bind('<Return>', )
         # lambda event: guifunc.check_password(self, self.user_txt.get(), self.pass_txt.get()))
 
-        self.search_btn = tk.Button(self, text="Enter", command=lambda: displaymap(self, self.controller.start, 0))
+        self.search_btn = tk.Button(self, text="Enter", command=lambda: displaymap(self))
         self.search_btn.place(x=200, y=290, width=100, height=50)
 
 
@@ -102,7 +98,7 @@ class SearchPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        but = tk.Button(self, text="Test", command=lambda: displaymap(self, self.controller.start, 0))
+        but = tk.Button(self, text="Test", command=lambda: displaymap(self))
         but.place(x=200, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Return",
@@ -111,71 +107,7 @@ class SearchPage(tk.Frame):
         button.place(x=200, y=290, width=100, height=50, )
 
 
-def displaymap(self, startdest, enddest):
-    api = overpy.Overpass()
-
-    query="""
-    <osm-script output="json" output-config="" timeout="25">
-      <union into="_">
-        <query into="_" type="node">
-          <has-kv k="building" modv="" v="residential"/>
-          <bbox-query s="1.3903206911167" w="103.89452934265" n="1.4275170451088" e="103.91710281372"/>
-        </query>
-        <query into="_" type="way">
-          <has-kv k="building" modv="" v="residential"/>
-          <bbox-query s="1.3903206911167" w="103.89452934265" n="1.4275170451088" e="103.91710281372"/>
-        </query>
-        <query into="_" type="relation">
-          <has-kv k="building" modv="" v="residential"/>
-          <bbox-query s="1.3903206911167" w="103.89452934265" n="1.4275170451088" e="103.91710281372"/>
-        </query>
-      </union>
-      <print e="" from="_" geometry="skeleton" ids="yes" limit="" mode="body" n="" order="id" s="" w=""/>
-      <recurse from="_" into="_" type="down"/>
-      <print e="" from="_" geometry="skeleton" ids="yes" limit="" mode="skeleton" n="" order="quadtile" s="" w=""/>
-    </osm-script>
-    """
-
-    query2 = """
-    <osm-script output="json" output-config="" timeout="25">
-      <union into="_">
-        <query into="_" type="node">
-          <has-kv k="building" modv="" v="residential"/>
-          <bbox-query s="1.3903206911167" w="103.89452934265" n="1.4275170451088" e="103.91710281372"/>
-        </query>
-        <query into="_" type="way">
-          <has-kv k="building" modv="" v="residential"/>
-          <bbox-query s="1.3903206911167" w="103.89452934265" n="1.4275170451088" e="103.91710281372"/>
-        </query>
-        <query into="_" type="relation">
-          <has-kv k="building" modv="" v="residential"/>
-          <bbox-query s="1.3903206911167" w="103.89452934265" n="1.4275170451088" e="103.91710281372"/>
-        </query>
-      </union>
-      <print e="" from="_" geometry="center" ids="yes" limit="" mode="body" n="" order="id" s="" w=""/>
-      <recurse from="_" into="_" type="down"/>
-      <print e="" from="_" geometry="skeleton" ids="yes" limit="" mode="skeleton" n="" order="quadtile" s="" w=""/>
-    </osm-script>
-    """
-    result = api.query(query2)
-    minim = 0
-    '''
-    if len(result.ways) != 0:
-        for i in range(min(20, len(result.ways))):
-            print(result.ways[i])
-    '''
-    print(result.ways[0])
-    way = result.ways[0]
-
-    nodes = result.ways[0].get_nodes()
-    if len(nodes) != 0:
-        for i in nodes:
-            print(i)
-
-    #for i in range(20):
-        #print(result.nodes[i])
-
-
+def displaymap(self):
     lat = [1.39833, 1.39641, 1.39832, 1.40639, 1.39957, 1.40069]
     long = [103.90495, 103.90718, 103.90495, 103.90880, 103.90973, 103.91338]
 
@@ -184,7 +116,7 @@ def displaymap(self, startdest, enddest):
 
     plt.draw()
     # plt.show()
-    # mpl.show()
+    mpl.show()
 
 
 if __name__ == "__main__":
