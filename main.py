@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter.font import Font
 import tkinter.filedialog as filedialog
+import tkinter.messagebox as msgbox
 import matplotlib.pyplot as plt
 import mplleaflet as mpl
 import pandas as pd
@@ -66,9 +67,11 @@ def enter_file(self, entry, file_number):
     filetype = [("CSV file", "*.csv")]
     filename = filedialog.askopenfilename(initialdir="./csv", title="Select file", defaultextension=".csv",
                                           filetypes=filetype)
-
-    entry.set(filename)
-    self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
+    if filename != "":
+        entry.set(filename)
+        self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
+    else:
+        msgbox.showerror("Error", "Please try again!")
 
 
 class SearchPage(tk.Frame):
