@@ -4,6 +4,7 @@ import tkinter.filedialog as filedialog
 import matplotlib.pyplot as plt
 import mplleaflet as mpl
 import pandas as pd
+from geopy.distance import geodesic
 
 
 class SampleApp(tk.Tk):
@@ -24,7 +25,7 @@ class SampleApp(tk.Tk):
         }
 
         self.frames = {}
-        for F in (StartPage, SearchPage, MainPage,):
+        for F in (StartPage, SearchPage, AlgoPage,):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
 
@@ -56,7 +57,7 @@ class StartPage(tk.Frame):
                                 command=lambda: enter_file(self, entry_hdb, "hdb"))
         hdb_filebtn.place(x=380, y=95)
 
-        submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
+        submit_btn = tk.Button(self, text='Submit', command=lambda: [controller.show_frame("SearchPage")])
         submit_btn.place(x=150, y=245)
 
 
@@ -70,7 +71,7 @@ def enter_file(self, entry, file_number):
     self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
 
 
-class MainPage(tk.Frame):
+class SearchPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -93,29 +94,36 @@ class MainPage(tk.Frame):
         self.end.bind('<Return>', )
         # lambda event: guifunc.check_password(self, self.user_txt.get(), self.pass_txt.get()))
 
-        self.search_btn = tk.Button(self, text="Enter", command=lambda: displaymap(self))
+        self.search_btn = tk.Button(self, text="Enter", command=lambda: [controller.show_frame("AlgoPage")])
         self.search_btn.place(x=200, y=290, width=100, height=50)
 
 
-class SearchPage(tk.Frame):
+class AlgoPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        but = tk.Button(self, text="Test", command=lambda: displaymap(self))
+        but = tk.Button(self, text="Best Route", command=lambda: bestalgo(self))
         but.place(x=200, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Return",
-                           command=lambda: [controller.show_frame("MainPage")])
+                           command=lambda: [controller.show_frame("SearchPage")])
         button.pack()
         button.place(x=200, y=290, width=100, height=50, )
 
 
-def displaymap(self):
-    lat = [1.39833, 1.39641, 1.39832, 1.40639, 1.39957, 1.40069]
-    long = [103.90495, 103.90718, 103.90495, 103.90880, 103.90973, 103.91338]
+def bestalgo(self):
+    lat = [1.37244, 1.37741]
+    long = [103.89379, 103.84876]
 
+    dist = getdistance(self, 1.37244, 103.89379, 1.37741, 103.84876)
+    print("Distance between Hougang Mall and SIT@NYP is: ", dist)
+
+    displaymap(self, lat, long)
+
+
+def displaymap(self, lat, long):
     plt.plot(long, lat, 'b')
     plt.plot(long, lat, 'rs')
 
@@ -125,8 +133,17 @@ def displaymap(self):
 
 
 def csvreader(self):
-    self.df = pd.read_csv(self.controller.filenames["hdb"].get())
-    print(self.df.head(16), "\n")
+    self.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
+    # self.roaddf = pd.read_csv(self.controller.filenames["road".get()])
+    print(self.hdbdf.head(16), "\n")
+    displaymap(self)
+
+
+def getdistance(self, startlat, startlong, endlat, endlong):
+    startarr = (startlat, startlong)
+    endarr = (endlat, endlong)
+
+    return geodesic(startarr, endarr).km
 
 
 if __name__ == "__main__":
