@@ -3,6 +3,7 @@ from tkinter.font import Font
 import tkinter.filedialog as filedialog
 import matplotlib.pyplot as plt
 import mplleaflet as mpl
+import pandas as pd
 
 
 class SampleApp(tk.Tk):
@@ -16,6 +17,11 @@ class SampleApp(tk.Tk):
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
+
+        self.filenames = {
+            "hdb": tk.StringVar(),
+            "road": tk.StringVar()
+        }
 
         self.frames = {}
         for F in (StartPage, SearchPage, MainPage,):
@@ -47,22 +53,21 @@ class StartPage(tk.Frame):
         hdb_file = tk.Entry(self, text=entry_hdb, state='disabled')
         hdb_file.place(x=250, y=100)
         hdb_filebtn = tk.Button(self, text='HDB File',
-                                command=lambda: enter_file(self, entry_hdb, "file1"))
+                                command=lambda: enter_file(self, entry_hdb, "hdb"))
         hdb_filebtn.place(x=380, y=95)
 
-        submit_btn = tk.Button(self, text='Submit', command=lambda: [controller.show_frame("SearchPage")])
+        submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
         submit_btn.place(x=150, y=245)
 
 
 def enter_file(self, entry, file_number):
     # set default filetype and restrict user to select CSV files only
     filetype = [("CSV file", "*.csv")]
-    filename = filedialog.askopenfilename(initialdir="/", title="Select file", defaultextension=".csv",
+    filename = filedialog.askopenfilename(initialdir="./csv", title="Select file", defaultextension=".csv",
                                           filetypes=filetype)
 
-    # parent.lift()
     entry.set(filename)
-    # self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
+    self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
 
 
 class MainPage(tk.Frame):
@@ -117,6 +122,11 @@ def displaymap(self):
     plt.draw()
     # plt.show()
     mpl.show()
+
+
+def csvreader(self):
+    self.df = pd.read_csv(self.controller.filenames["hdb"].get())
+    print(self.df.head(16), "\n")
 
 
 if __name__ == "__main__":
