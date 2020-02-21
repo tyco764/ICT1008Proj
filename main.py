@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import mplleaflet as mpl
 import pandas as pd
 from geopy.distance import geodesic
+import numpy as np
 
 
 class SampleApp(tk.Tk):
@@ -28,6 +29,9 @@ class SampleApp(tk.Tk):
         self.hdbdf = pd.DataFrame()
         self.roaddf = pd.DataFrame()
 
+        self.routelat = []
+        self.routelong = []
+
         self.frames = {}
         for F in (StartPage, SearchPage, AlgoPage,):
             page_name = F.__name__
@@ -49,7 +53,7 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        h1 = Font(family="Helvetica", size=18) # weight="bold"
+        h1 = Font(family="Helvetica", size=18)  # weight="bold"
         hdblabel = tk.Label(self, text="HDB Excel", font=h1)
         hdblabel.place(x=90, y=90)
 
@@ -70,7 +74,7 @@ class StartPage(tk.Frame):
         road_file = tk.Entry(self, text=entry_road, state='disabled')
         road_file.place(x=250, y=150)
         road_filebtn = tk.Button(self, text='HDB File',
-                                command=lambda: enter_file(self, entry_road, "road"))
+                                 command=lambda: enter_file(self, entry_road, "road"))
         road_filebtn.place(x=380, y=155)
 
         submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
@@ -99,20 +103,22 @@ class SearchPage(tk.Frame):
         startlabel = tk.Label(self, text="Start:", font=h1)
         startlabel.place(x=90, y=98)
 
-        self.start = tk.Entry(self, justify='left')
+        startdest = tk.StringVar()
+        self.start = tk.Entry(self, justify='left', text=startdest)
         self.start.focus()
         self.start.place(x=203, y=100, width=250, height=50)
 
         endlabel = tk.Label(self, text="End:", font=h1)
         endlabel.place(x=90, y=180)
 
-        large_font = ('Verdana', 14)
-        self.end = tk.Entry(self, justify='left', font=large_font)
+        # large_font = ('Verdana', 14)
+        enddest = tk.StringVar()
+        self.end = tk.Entry(self, justify='left', text=enddest)
         self.end.place(x=203, y=180, width=250, height=50)
         self.end.bind('<Return>', )
-        # lambda event: guifunc.check_password(self, self.user_txt.get(), self.pass_txt.get()))
 
-        self.search_btn = tk.Button(self, text="Search", command=lambda: [controller.show_frame("AlgoPage")])
+        self.search_btn = tk.Button(self, text="Search", command=lambda: binSearch(self, self.controller.hdbdf,
+                                                                                   startdest, enddest))
         self.search_btn.place(x=200, y=290, width=100, height=50)
 
 
@@ -135,7 +141,7 @@ def bestalgo(self):
     lat = [1.37244, 1.37741]
     long = [103.89379, 103.84876]
 
-    dist = getdistance(self, 1.37244, 103.89379, 1.37741, 103.84876)
+    dist = getdistance(self, lat[0], long[0], lat[1], long[1])
     print("Distance between Hougang Mall and SIT@NYP is: ", dist)
 
     displaymap(self, lat, long)
@@ -150,13 +156,47 @@ def displaymap(self, lat, long):
     mpl.show()
 
 
+def binSearch(self, df, query, query2):
+    searchdf = df.copy(deep=True)
+    searchdf["name"] = searchdf["name"].apply(str)
+    searcharr = searchdf.to_numpy()
+
+    np.chararray.sort(searcharr, axis=0)
+    startvalue = binSearchAlgo(self, searcharr, query.get(), 0)
+    endvalue = binSearchAlgo(self, searcharr, query2.get(), 0)
+
+    if startvalue is None or endvalue is None:
+        msgbox.showerror("Error", "Cannot Find what you are looking for!")
+        self.controller.show_frame("SearchPage")
+    else:
+        startdest = searcharr[startvalue]
+        enddest = searcharr[endvalue]
+        print(startdest, enddest)
+        self.controller.show_frame("AlgoPage")
+
+
+def binSearchAlgo(self, array, query, col):
+    lo = 0
+    high = len(array) - 1
+
+    while lo <= high:
+        middle = (lo + high) // 2
+        if array[middle][col] < query:
+            lo = middle + 1
+        elif array[middle][col] > query:
+            high = middle -1
+        else:
+            return middle
+    return None
+
+
 def csvreader(self):
     if self.controller.filenames["hdb"].get() is not None:
         self.controller.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
         print(self.controller.hdbdf.head(5), "\n")
     if self.controller.filenames["road"].get() is not None:
         self.controller.roaddf = pd.read_csv(self.controller.filenames["road"].get())
-        print(self.controller.hdbdf.head(5), "\n")
+        print(self.controller.roaddf.head(5), "\n")
 
     self.controller.show_frame("SearchPage")
 
