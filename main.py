@@ -25,6 +25,9 @@ class SampleApp(tk.Tk):
             "road": tk.StringVar()
         }
 
+        self.hdbdf = pd.DataFrame()
+        self.roaddf = pd.DataFrame()
+
         self.frames = {}
         for F in (StartPage, SearchPage, AlgoPage,):
             page_name = F.__name__
@@ -46,7 +49,7 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        h1 = Font(family="Helvetica", size=20)  # weight="bold"
+        h1 = Font(family="Helvetica", size=18) # weight="bold"
         hdblabel = tk.Label(self, text="HDB Excel", font=h1)
         hdblabel.place(x=90, y=90)
 
@@ -58,18 +61,30 @@ class StartPage(tk.Frame):
                                 command=lambda: enter_file(self, entry_hdb, "hdb"))
         hdb_filebtn.place(x=380, y=95)
 
-        submit_btn = tk.Button(self, text='Submit', command=lambda: [controller.show_frame("SearchPage")])
+        h1 = Font(family="Helvetica", size=18)  # weight="bold"
+        roadlabel = tk.Label(self, text="Road CSV", font=h1)
+        roadlabel.place(x=90, y=150)
+
+        # self.hdb = tk.Entry(self, justify='left', state='disabled')
+        entry_road = tk.StringVar()
+        road_file = tk.Entry(self, text=entry_road, state='disabled')
+        road_file.place(x=250, y=150)
+        road_filebtn = tk.Button(self, text='HDB File',
+                                command=lambda: enter_file(self, entry_road, "road"))
+        road_filebtn.place(x=380, y=155)
+
+        submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
         submit_btn.place(x=150, y=245)
 
 
-def enter_file(self, entry, file_number):
+def enter_file(self, entry, file_name):
     # set default filetype and restrict user to select CSV files only
     filetype = [("CSV file", "*.csv")]
     filename = filedialog.askopenfilename(initialdir="./csv", title="Select file", defaultextension=".csv",
                                           filetypes=filetype)
     if filename != "":
         entry.set(filename)
-        self.controller.filenames[file_number].set(filename)  # store filename as into dictionary
+        self.controller.filenames[file_name].set(filename)  # store filename as into dictionary
     else:
         msgbox.showerror("Error", "Please try again!")
 
@@ -97,7 +112,7 @@ class SearchPage(tk.Frame):
         self.end.bind('<Return>', )
         # lambda event: guifunc.check_password(self, self.user_txt.get(), self.pass_txt.get()))
 
-        self.search_btn = tk.Button(self, text="Enter", command=lambda: [controller.show_frame("AlgoPage")])
+        self.search_btn = tk.Button(self, text="Search", command=lambda: [controller.show_frame("AlgoPage")])
         self.search_btn.place(x=200, y=290, width=100, height=50)
 
 
@@ -136,10 +151,14 @@ def displaymap(self, lat, long):
 
 
 def csvreader(self):
-    self.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
-    # self.roaddf = pd.read_csv(self.controller.filenames["road".get()])
-    print(self.hdbdf.head(16), "\n")
-    displaymap(self)
+    if self.controller.filenames["hdb"].get() is not None:
+        self.controller.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
+        print(self.controller.hdbdf.head(5), "\n")
+    if self.controller.filenames["road"].get() is not None:
+        self.controller.roaddf = pd.read_csv(self.controller.filenames["road"].get())
+        print(self.controller.hdbdf.head(5), "\n")
+
+    self.controller.show_frame("SearchPage")
 
 
 def getdistance(self, startlat, startlong, endlat, endlong):
