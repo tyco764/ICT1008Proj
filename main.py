@@ -133,7 +133,7 @@ class AlgoPage(tk.Frame):
         but.place(x=200, y=190, width=100, height=50)
 
         but2 = tk.Button(self, text="Best Route Debug)", command=lambda: djikstraalgo(self, True))
-        but2.place(x=300, y=190, width=100, height=50)
+        but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Return",
                            command=lambda: [controller.show_frame("SearchPage")])
@@ -181,18 +181,20 @@ def djikstraalgo(self, debug):
     for i in range(len(pathing)):
         #print(coordinates[int(pathing[i])][0])
         #appends longitude and latitude based on order of path
-        long.append(coordinates[int(pathing[i])][0])
-        lat.append(coordinates[int(pathing[i])][1])
+        self.controller.routelong.append(coordinates[int(pathing[i])][0])
+        self.controller.routelat.append(coordinates[int(pathing[i])][1])
 
     # drawPath(pathing, coordinates)
     # if (debug):
 
     #display map using longitude and latitude
-    displaymap(self, lat, long, debug)
+    displaymap(self, debug)
 
 
-def displaymap(self, lat, long, debug):
+def displaymap(self, debug):
     #takes in an array of latitude and longitude and draws them onto openstreetmap
+    long = self.controller.routelong.copy()
+    lat = self.controller.routelat.copy()
 
     # plot nodes
     plt.plot(long, lat, 'rs')
@@ -214,6 +216,8 @@ def displaymap(self, lat, long, debug):
         plt.show()
     #shows the drawn plot over openstreetmap, requires internet unless cached
     mpl.show()
+
+    self.controller.show_frame("StartPage")
 
 
 def formEdges(self, coord1, coord2, c, g):
@@ -248,7 +252,7 @@ def binSearch(self, df, query, query2):
     else:
         startdest = searcharr[startvalue]
         enddest = searcharr[endvalue]
-        print(startdest, enddest)
+        print(startdest, "\n", enddest)
         self.controller.show_frame("AlgoPage")
 
 
