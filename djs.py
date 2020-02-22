@@ -1,13 +1,12 @@
 from collections import deque, namedtuple
 
-
 # we'll use infinity as a default distance to nodes.
 inf = float('inf')
 Edge = namedtuple('Edge', 'start, end, cost')
 
 
 def make_edge(start, end, cost=1):
-  return Edge(start, end, cost)
+    return Edge(start, end, cost)
 
 
 class Graph:
@@ -89,10 +88,11 @@ class Graph:
         return path
 
 
+'''
 graph = Graph([
     ("e", "f", 9),  ("a", "c", 9),  ("a", "f", 14), ("b", "c", 10),
     ("b", "d", 15), ("c", "d", 11), ("c", "f", 2),  ("d", "e", 6),
     ("a", "b", 7)])
 
 print(graph.dijkstra("a", "e"))
-
+'''

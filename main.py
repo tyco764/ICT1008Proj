@@ -179,24 +179,40 @@ def djikstraalgo(self, debug):
 
     long, lat = [], []
     for i in range(len(pathing)):
-        print(coordinates[int(pathing[i])][0])
+        #print(coordinates[int(pathing[i])][0])
+        #appends longitude and latitude based on order of path
         long.append(coordinates[int(pathing[i])][0])
         lat.append(coordinates[int(pathing[i])][1])
 
-    displaymap(self, lat, long, debug)
     # drawPath(pathing, coordinates)
-
     # if (debug):
+
+    #display map using longitude and latitude
+    displaymap(self, lat, long, debug)
 
 
 def displaymap(self, lat, long, debug):
-    plt.plot(long, lat, 'b')
-    plt.plot(long, lat, 'rs')
+    #takes in an array of latitude and longitude and draws them onto openstreetmap
 
-    # plt.show()
+    # plot nodes
+    plt.plot(long, lat, 'rs')
+    #plot edges
+    line = plt.plot(long, lat)[0]
+
+    xdata = line.get_xdata()
+    ydata = line.get_ydata()
+
+    position = xdata.mean()
+    start_ind = np.argmin(np.absolute(xdata - position))
+    end_ind = start_ind+1
+
+    line.axes.annotate('', xytext=(xdata[start_ind], ydata[start_ind]), xy=(xdata[end_ind], ydata[end_ind]),
+                       arrowprops=dict(arrowstyle="->", color=line.get_color()), size=30)
+    #draw plot
     plt.draw()
     if debug:
         plt.show()
+    #shows the drawn plot over openstreetmap, requires internet unless cached
     mpl.show()
 
 
@@ -204,7 +220,6 @@ def formEdges(self, coord1, coord2, c, g):
     #plt.plot((coord1[0], coord2[0]), (coord1[1], coord2[1]), 'b')
     # plt.plot((A[0], B[0]), (A[1], B[1]), 'rs')
     alabel = c.index(coord1)
-    print(alabel)
     blabel = c.index(coord2)
     distance = getdistance(self, coord1[1], coord1[0], coord2[1], coord2[0])
     g.append((str(alabel), str(blabel), distance))
