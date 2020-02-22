@@ -129,10 +129,10 @@ class AlgoPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        but = tk.Button(self, text="Best Route", command=lambda: bestalgo(self, False))
+        but = tk.Button(self, text="Best Route", command=lambda: djikstraalgo(self, False))
         but.place(x=200, y=190, width=100, height=50)
-        
-        but2 = tk.Button(self, text="Best Route Debug)", command=lambda: bestalgo(self, True))
+
+        but2 = tk.Button(self, text="Best Route Debug)", command=lambda: djikstraalgo(self, True))
         but2.place(x=300, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Return",
@@ -151,16 +151,15 @@ def bestalgo(self, debug):
     displaymap(self, lat, long, debug)
 
 
-def displaymap(self, lat, long, debug):
-    #plt.plot(long, lat, 'b')
-    #plt.plot(long, lat, 'rs')
-    #random vertices
-    coordinates = [(103.85779, 1.36944), (103.85779, 1.37244), (103.85979, 1.37444), (103.85379, 1.37244), (103.85379, 1.37544), (103.84876, 1.37544),(103.85376, 1.38041)]
+def djikstraalgo(self, debug):
+    # random vertices
+    coordinates = [(103.85779, 1.36944), (103.85779, 1.37244), (103.85979, 1.37444), (103.85379, 1.37244),
+                   (103.85379, 1.37544), (103.84876, 1.37544), (103.85376, 1.38041)]
     s = '0'
-    for i in coordinates:
-        plt.plot(i[0], i[1], 'ro')
-        plt.text(i[0], i[1], s,fontsize=9)
-        s = str(int(s) + 1)
+    # for i in coordinates:
+    #    plt.plot(i[0], i[1], 'ro')
+    #    plt.text(i[0], i[1], s,fontsize=9)
+    #    s = str(int(s) + 1)
     edges = []
     formEdges(self, coordinates[0], coordinates[2], coordinates, edges)
     formEdges(self, coordinates[0], coordinates[3], coordinates, edges)
@@ -177,32 +176,46 @@ def displaymap(self, lat, long, debug):
     graph = djs.Graph(edges)
     pathing = graph.dijkstra("0", "6")
     print(pathing)
-    drawPath(pathing, coordinates)
 
-    if(debug):
-        plt.show()
-    #plt.draw()
+    long, lat = [], []
+    for i in range(len(pathing)):
+        print(coordinates[int(pathing[i])][0])
+        long.append(coordinates[int(pathing[i])][0])
+        lat.append(coordinates[int(pathing[i])][1])
+
+    displaymap(self, lat, long, debug)
+    # drawPath(pathing, coordinates)
+
+    # if (debug):
+
+
+def displaymap(self, lat, long, debug):
+    plt.plot(long, lat, 'b')
+    plt.plot(long, lat, 'rs')
+
     # plt.show()
+    plt.draw()
+    if debug:
+        plt.show()
     mpl.show()
 
-def formEdges(self, A, B, c, g):
-    plt.plot((A[0], B[0]),(A[1],B[1]),  'b')
-    #plt.plot((A[0], B[0]), (A[1], B[1]), 'rs')
-    alabel = c.index(A)
-    blabel = c.index(B)
-    distance = getdistance(self, A[1], A[0], B[1], B[0])
+
+def formEdges(self, coord1, coord2, c, g):
+    #plt.plot((coord1[0], coord2[0]), (coord1[1], coord2[1]), 'b')
+    # plt.plot((A[0], B[0]), (A[1], B[1]), 'rs')
+    alabel = c.index(coord1)
+    print(alabel)
+    blabel = c.index(coord2)
+    distance = getdistance(self, coord1[1], coord1[0], coord2[1], coord2[0])
     g.append((str(alabel), str(blabel), distance))
-    
+
+
 def drawPath(pathing, coordinates):
     for i in range(len(pathing) - 1):
-        
         current = int(pathing[i])
-        next = int(pathing[i+1])
+        next = int(pathing[i + 1])
         plt.plot((coordinates[current][0], coordinates[next][0]), (coordinates[current][1], coordinates[next][1]), 'r')
         plt.plot((coordinates[current][0], coordinates[next][0]), (coordinates[current][1], coordinates[next][1]), 'rs')
-      
- 
-    
 
 
 def binSearch(self, df, query, query2):
@@ -233,7 +246,7 @@ def binSearchAlgo(self, array, query, col):
         if array[middle][col] < query:
             lo = middle + 1
         elif array[middle][col] > query:
-            high = middle -1
+            high = middle - 1
         else:
             return middle
     return None
