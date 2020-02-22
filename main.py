@@ -7,6 +7,7 @@ import mplleaflet as mpl
 import pandas as pd
 from geopy.distance import geodesic
 import numpy as np
+import djs
 
 
 class SampleApp(tk.Tk):
@@ -128,8 +129,11 @@ class AlgoPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        but = tk.Button(self, text="Best Route", command=lambda: bestalgo(self))
+        but = tk.Button(self, text="Best Route", command=lambda: bestalgo(self, False))
         but.place(x=200, y=190, width=100, height=50)
+        
+        but2 = tk.Button(self, text="Best Route Debug)", command=lambda: bestalgo(self, True))
+        but2.place(x=300, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Return",
                            command=lambda: [controller.show_frame("SearchPage")])
@@ -137,23 +141,68 @@ class AlgoPage(tk.Frame):
         button.place(x=200, y=290, width=100, height=50, )
 
 
-def bestalgo(self):
+def bestalgo(self, debug):
     lat = [1.37244, 1.37741]
     long = [103.89379, 103.84876]
 
     dist = getdistance(self, lat[0], long[0], lat[1], long[1])
     print("Distance between Hougang Mall and SIT@NYP is: ", dist)
 
-    displaymap(self, lat, long)
+    displaymap(self, lat, long, debug)
 
 
-def displaymap(self, lat, long):
-    plt.plot(long, lat, 'b')
-    plt.plot(long, lat, 'rs')
+def displaymap(self, lat, long, debug):
+    #plt.plot(long, lat, 'b')
+    #plt.plot(long, lat, 'rs')
+    #random vertices
+    coordinates = [(103.85779, 1.36944), (103.85779, 1.37244), (103.85979, 1.37444), (103.85379, 1.37244), (103.85379, 1.37544), (103.84876, 1.37544),(103.85376, 1.38041)]
+    s = '0'
+    for i in coordinates:
+        plt.plot(i[0], i[1], 'ro')
+        plt.text(i[0], i[1], s,fontsize=9)
+        s = str(int(s) + 1)
+    edges = []
+    formEdges(self, coordinates[0], coordinates[2], coordinates, edges)
+    formEdges(self, coordinates[0], coordinates[3], coordinates, edges)
+    formEdges(self, coordinates[3], coordinates[5], coordinates, edges)
+    formEdges(self, coordinates[5], coordinates[6], coordinates, edges)
+    formEdges(self, coordinates[6], coordinates[2], coordinates, edges)
+    formEdges(self, coordinates[2], coordinates[1], coordinates, edges)
+    formEdges(self, coordinates[1], coordinates[4], coordinates, edges)
+    formEdges(self, coordinates[4], coordinates[3], coordinates, edges)
+    formEdges(self, coordinates[0], coordinates[4], coordinates, edges)
+    formEdges(self, coordinates[0], coordinates[1], coordinates, edges)
+    formEdges(self, coordinates[4], coordinates[6], coordinates, edges)
+    print(edges)
+    graph = djs.Graph(edges)
+    pathing = graph.dijkstra("0", "6")
+    print(pathing)
+    drawPath(pathing, coordinates)
 
-    plt.draw()
+    if(debug):
+        plt.show()
+    #plt.draw()
     # plt.show()
     mpl.show()
+
+def formEdges(self, A, B, c, g):
+    plt.plot((A[0], B[0]),(A[1],B[1]),  'b')
+    #plt.plot((A[0], B[0]), (A[1], B[1]), 'rs')
+    alabel = c.index(A)
+    blabel = c.index(B)
+    distance = getdistance(self, A[1], A[0], B[1], B[0])
+    g.append((str(alabel), str(blabel), distance))
+    
+def drawPath(pathing, coordinates):
+    for i in range(len(pathing) - 1):
+        
+        current = int(pathing[i])
+        next = int(pathing[i+1])
+        plt.plot((coordinates[current][0], coordinates[next][0]), (coordinates[current][1], coordinates[next][1]), 'r')
+        plt.plot((coordinates[current][0], coordinates[next][0]), (coordinates[current][1], coordinates[next][1]), 'rs')
+      
+ 
+    
 
 
 def binSearch(self, df, query, query2):
