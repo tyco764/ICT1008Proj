@@ -3,12 +3,16 @@ from tkinter.font import Font
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as msgbox
 import matplotlib.pyplot as plt
-import mplleaflet as mpl
 import pandas as pd
 from geopy.distance import geodesic
+import folium
+import flask
+import threading
+import webbrowser
 import numpy as np
 import djs
 
+app = flask.Flask(__name__, static_url_path="/", static_folder="static")
 
 class SampleApp(tk.Tk):
 
@@ -30,6 +34,7 @@ class SampleApp(tk.Tk):
         self.hdbdf = pd.DataFrame()
         self.roaddf = pd.DataFrame()
 
+        self.route = []
         self.routelat = []
         self.routelong = []
 
@@ -105,6 +110,7 @@ class SearchPage(tk.Frame):
         startlabel.place(x=90, y=98)
 
         startdest = tk.StringVar()
+        startdest.set("Punggol MRT")
         self.start = tk.Entry(self, justify='left', text=startdest)
         self.start.focus()
         self.start.place(x=203, y=100, width=250, height=50)
@@ -114,9 +120,10 @@ class SearchPage(tk.Frame):
 
         # large_font = ('Verdana', 14)
         enddest = tk.StringVar()
+        enddest.set("Damai LRT")
         self.end = tk.Entry(self, justify='left', text=enddest)
         self.end.place(x=203, y=180, width=250, height=50)
-        self.end.bind('<Return>', )
+        self.end.bind('<Return>')
 
         self.search_btn = tk.Button(self, text="Search", command=lambda: binSearch(self, self.controller.hdbdf,
                                                                                    startdest, enddest))
@@ -183,6 +190,7 @@ def djikstraalgo(self, debug):
         #appends longitude and latitude based on order of path
         self.controller.routelong.append(coordinates[int(pathing[i])][0])
         self.controller.routelat.append(coordinates[int(pathing[i])][1])
+        #self.controller.route.append(coordinates[int(pathing[i])])
 
     # drawPath(pathing, coordinates)
     # if (debug):
@@ -190,33 +198,21 @@ def djikstraalgo(self, debug):
     #display map using longitude and latitude
     displaymap(self, debug)
 
-
+#@app.route('/')
 def displaymap(self, debug):
     #takes in an array of latitude and longitude and draws them onto openstreetmap
     long = self.controller.routelong.copy()
     lat = self.controller.routelat.copy()
 
-    # plot nodes
-    plt.plot(long, lat, 'rs')
-    #plot edges
-    line = plt.plot(long, lat)[0]
+    route = list(zip(lat, long))
 
-    xdata = line.get_xdata()
-    ydata = line.get_ydata()
+    map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
+    for i in range(len(route)):
+        folium.Marker(route[i]).add_to(map)
+        #popup=names[]
 
-    position = xdata.mean()
-    start_ind = np.argmin(np.absolute(xdata - position))
-    end_ind = start_ind+1
-
-    line.axes.annotate('', xytext=(xdata[start_ind], ydata[start_ind]), xy=(xdata[end_ind], ydata[end_ind]),
-                       arrowprops=dict(arrowstyle="->", color=line.get_color()), size=30)
-    #draw plot
-    plt.draw()
-    if debug:
-        plt.show()
-    #shows the drawn plot over openstreetmap, requires internet unless cached
-    mpl.show()
-
+    map.save("map.html")
+    webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
     self.controller.show_frame("StartPage")
 
 
@@ -288,17 +284,25 @@ def getdistance(self, startlat, startlong, endlat, endlong):
 
     return geodesic(startarr, endarr).km
 
-
-if __name__ == "__main__":
-    app = SampleApp()
+def tk_main():
+    root = SampleApp()
     width = 500
     height = 350
-    ws = app.winfo_screenwidth()
-    hs = app.winfo_screenheight()
+    ws = root.winfo_screenwidth()
+    hs = root.winfo_screenheight()
     ws = (ws / 2) - (width) - 350
     hs = (hs / 2) - (height / 2) - 250
-    app.resizable(False, False)  # don't allow user to resize
-    app.title('1008 Data Structures')
-    app.geometry('%dx%d+%d+%d' % (width, height, ws, hs))  # set app size
-    app.attributes('-topmost', False)  # allow other window to be above main app
-    app.mainloop()
+    root.resizable(False, False)  # don't allow user to resize
+    root.title('1008 Data Structures')
+    root.geometry('%dx%d+%d+%d' % (width, height, ws, hs))  # set app size
+    root.attributes('-topmost', False)  # allow other window to be above main app
+    root.mainloop()
+
+def flask_main():
+    app.run()
+
+if __name__ == "__main__":
+   flt = threading.Thread(target=flask_main)
+   flt.daemon = True
+   flt.start()
+   tk_main()
