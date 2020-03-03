@@ -1,66 +1,95 @@
+import matplotlib.pyplot as plt
 import networkx as nx
-import heapq
+
+G = nx.Graph()
+
+'''
+for nodes within area of zoom (to be specified) depending on startNode and endNode:
+  G.add_edge(nodeId, nextnodeId, weight = distance by road)
+
+#for here i'll be using fake nodes
+'''
+
+G.add_edge('a', 'b', weight= 60) #weight = road dist correct to 2dp.
+G.add_edge('a', 'c', weight = 27)
+G.add_edge('c', 'd', weight= 10)
+G.add_edge('c', 'e', weight= 70)
+G.add_edge('c', 'f', weight= 90)
+G.add_edge('a', 'd', weight= 30)
+G.add_edge('d', 'e', weight= 30)
+
+G.add_node('a', gVal=0, hVal=0, fVal=20)
+G.add_node('b', gVal=0, hVal=0, fVal=15)
+G.add_node('c', gVal=0, hVal=0, fVal=21)
+G.add_node('d', gVal=0, hVal=0, fVal=16)
+G.add_node('e', gVal=0, hVal=0, fVal=32)
+G.add_node('f', gVal=0, hVal=0, fVal=28)
+
+# function to find hVal (direct dist)
+# function to find gVal (collective dist)
+# then fVal = gVal + hVal
+
+# G.nodes['x']['gVal'] = f(g)
+# G.nodes['x']['hVal'] = f(h)
+# G.nodes['x']['fVal'] = G.nodes['x']['gVal'] + G.nodes['x']['hVal']
 
 
-# https://stackoverflow.com/questions/19915266/drawing-a-graph-with-networkx-on-a-basemap
-# ^for mapping into graph data structure
-# https://networkx.github.io/documentation/stable/auto_examples/drawing/plot_weighted_graph.html
-# ^for plotting weighted graphs
-
-# .
-# GENERAL LOGIC ONLY
-
-
-# f(n) = g(n) + h(n)
-# where g = collective distance from start to current node
-# h = how far current node is to the goal node (heuristic distance: are we getting closer?)
-# lowest f value will be the next node to traverse to
-
-# initialise open and closed set as lists, where closedSet stores evaluated nodes
-# open set contain nodes that still need to be evaluated.
-# while open set is not empty, we can keep going, else no sol
-# open set will start with startNode
-
-# with the assumption that nodeId can get from the csv
-
-class Graph:
-    startNode = input()  # fill in here
-    endNode = input()  # fill in here
-    openSet = [startNode]
-    closedSet = []  # store visited
-
-
-    def drawGraph(self, startNode, endNode):
-        G = nx.Graph()
-        # VERY rough idea here
-        '''
-        for nodes within area of zoom (to be specified) depending on start and endNode:
-            G.add_edge(nodeId, nextNode.nodeId, weight = distance by road)
-            # should have a general direction to point the graph
-
-        '''
-
-        return G
-
-# very raw idea
-    tempNode = startNode
-    def AStar(self, tempNode, endNode, G):
-        '''
-        # G gets the graph returned from drawGraph
-        while openSet is not empty or tempNode is not endNode:
-            neighbors = g.neighbors(tempNode)
-            for n in neighbors:
-                weight = G.get_edge_data(tempNode, n)
-                h = getDirectDisplacement(n, endNode) # this is the heuristic dist
-                g += weight # this is the collective dist
-                f = g + h
-                # choose lowest f as next neighbor
-            path.append(chosen n)
-            tempNode = chosen n
+def sortLowF(list1):
+    list1.sort(key=lambda x:G.nodes[x]['fVal']) #sorting lowest fValue to be first
+    return list1
 
 
 
+def AStar(graph, start, end):
+    openlist = [start]
+    closedlist = []
+    path = []
+    curNode = start
+    
+    while True:
+      if not graph.has_node(start) or not graph.has_node(end):
+        print("Invalid nodes entered.")
+        return -1
+        break
+      if len(openlist) == 0:
+        print("No paths found.")
+        return -1
+        break
+      if curNode == end:
+        print("Shortest Path Found!")
+        return path
+        break
+
+      if curNode == start:
+        graph.nodes[curNode]['gVal'] = 0 
+        graph.nodes[curNode]['hVal'] = 0 
+        graph.nodes[curNode]['fVal'] = 0 
+
+      else:
+        for x in openlist:
+          graph.nodes[x]['gVal'] = graph.nodes[curNode]['gVal'] + graph.edges[curNode,x]['weight']
+          graph.nodes[x]['hVal'] = 0 #enter direct distance function, should return float
+          graph.nodes[x]['fVal'] = graph.nodes[curNode]['gVal'] + graph.nodes[curNode]['hVal']
+    
+      #doesnt cater for 2 same lowest fVal
+      for n in openlist:
+        if n not in closedlist:
+          curNode = sortLowF(openlist)[0] # first element lowest f
+          closedlist.extend(openlist)
+          openlist = list(graph.neighbors(curNode)) #neighbors of curNode
+          path.append(curNode)
+          ##continue here****************************************************************
 
 
-        return path #the shortest path, will only return 1 even if more than 1
-        '''
+
+startNode = 'a' #input("Enter start point by ID reference: ")
+endNode = 'e' #input("Enter end point by ID reference: ")
+print(AStar(G, startNode, endNode))
+
+#openlist = list(G.nodes)
+#print(sortLowF(openlist)[0])
+
+
+# a = G.nodes['a']['gVal']
+# print(a)
+# print(G.edges['a','c']['weight'])  
