@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 
+'''
 G = nx.Graph()
 
 G.add_edge('a', 'b', weight= 60) #weight = road dist correct to 2dp.
@@ -18,9 +19,17 @@ G.add_node('d', gVal=0, hVal=20, fVal=0)
 G.add_node('e', gVal=0, hVal=0, fVal=0)
 G.add_node('f', gVal=0, hVal=120, fVal=0)
 
-print("Graph added.")
+# function to find hVal (direct dist) from one node straight to end node
+# function to find gVal (collective dist) distance of path
 
+print("Graph added.")
+'''
 ##start
+
+def addedges(df):
+	pass
+
+
 def sortLowF(graph, list1):
 	list1.sort(key=lambda x:graph.nodes[x]['fVal'])
 	return list1
@@ -87,7 +96,7 @@ def AStar(graph, start, end):
 	return path
 
 
-startNode = 'a'
-endNode = 'e'
-print(AStar(G, startNode, endNode))
+#startNode = 'a'
+#endNode = 'e'
+#print(AStar(G, startNode, endNode))
 #print(list(G.neighbors('d')))
