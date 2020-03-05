@@ -14,6 +14,7 @@ import djs
 
 app = flask.Flask(__name__, static_url_path="/", static_folder="static")
 
+
 class SampleApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -186,21 +187,22 @@ def djikstraalgo(self, debug):
 
     long, lat = [], []
     for i in range(len(pathing)):
-        #print(coordinates[int(pathing[i])][0])
-        #appends longitude and latitude based on order of path
+        # print(coordinates[int(pathing[i])][0])
+        # appends longitude and latitude based on order of path
         self.controller.routelong.append(coordinates[int(pathing[i])][0])
         self.controller.routelat.append(coordinates[int(pathing[i])][1])
-        #self.controller.route.append(coordinates[int(pathing[i])])
+        # self.controller.route.append(coordinates[int(pathing[i])])
 
     # drawPath(pathing, coordinates)
     # if (debug):
 
-    #display map using longitude and latitude
+    # display map using longitude and latitude
     displaymap(self, debug)
 
-#@app.route('/')
+
+# @app.route('/')
 def displaymap(self, debug):
-    #takes in an array of latitude and longitude and draws them onto openstreetmap
+    # takes in an array of latitude and longitude and draws them onto openstreetmap
     long = self.controller.routelong.copy()
     lat = self.controller.routelat.copy()
 
@@ -209,7 +211,7 @@ def displaymap(self, debug):
     map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
     for i in range(len(route)):
         folium.Marker(route[i]).add_to(map)
-        #popup=names[]
+        # popup=names[]
 
     map.save("map.html")
     webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
@@ -217,7 +219,7 @@ def displaymap(self, debug):
 
 
 def formEdges(self, coord1, coord2, c, g):
-    #plt.plot((coord1[0], coord2[0]), (coord1[1], coord2[1]), 'b')
+    # plt.plot((coord1[0], coord2[0]), (coord1[1], coord2[1]), 'b')
     # plt.plot((A[0], B[0]), (A[1], B[1]), 'rs')
     alabel = c.index(coord1)
     blabel = c.index(coord2)
@@ -284,6 +286,7 @@ def getdistance(self, startlat, startlong, endlat, endlong):
 
     return geodesic(startarr, endarr).km
 
+
 def tk_main():
     root = SampleApp()
     width = 500
@@ -298,11 +301,13 @@ def tk_main():
     root.attributes('-topmost', False)  # allow other window to be above main app
     root.mainloop()
 
+
 def flask_main():
     app.run()
 
+
 if __name__ == "__main__":
-   flt = threading.Thread(target=flask_main)
-   flt.daemon = True
-   flt.start()
-   tk_main()
+    flt = threading.Thread(target=flask_main)
+    flt.daemon = True
+    flt.start()
+    tk_main()
