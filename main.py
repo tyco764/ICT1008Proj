@@ -189,11 +189,12 @@ def astaralgo(self):
     edgesarr = self.controller.edgesdf.to_numpy()
     for i in range(len(edgesarr)):
         G.add_edge(edgesarr[i][0], edgesarr[i][3], weight= edgesarr[i][6])
+    print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
 
     hdbarr = self.controller.hdbdf.to_numpy()
     for i in range(len(hdbarr)):
-        G.add_node(hdbarr[i][0], gVal=0, hVal=getdistance(self, hdbarr[i][2], hdbarr[i][1],self.controller.enddest[1],
-                                                          self.controller.enddest[2]),fVal=0)
+        G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=getdistance(self, hdbarr[i][2], hdbarr[i][1],self.controller.enddest[1],
+                                                          self.controller.enddest[2]),)
 
     endtime = time.time() - starttime
     print("Graph Added.")
@@ -201,8 +202,9 @@ def astaralgo(self):
 
     starttime = time.time()
 
-    startNode = self.controller.startdest[0]
-    endNode = self.controller.enddest[0]
+    startNode = G.nodes[self.controller.startdest[0]]
+    #print(startNode)
+    endNode = G.nodes[self.controller.enddest[0]]
 
     print(rawLogic.AStar(G, startNode, endNode))
 
@@ -296,7 +298,7 @@ def getdistance(self, startlat, startlong, endlat, endlong):
     startarr = (startlat, startlong)
     endarr = (endlat, endlong)
 
-    return geodesic(startarr, endarr).km
+    return geodesic(startarr, endarr).m
 
 
 def tk_main():
