@@ -301,7 +301,7 @@ def getdistance(self, startlat, startlong, endlat, endlong):
     startarr = (startlat, startlong)
     endarr = (endlat, endlong)
 
-    return geodesic(startarr, endarr).m
+    return float(geodesic(startarr, endarr).m)
 
 
 def tk_main():
