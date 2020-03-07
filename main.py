@@ -11,7 +11,7 @@ import folium, threading, webbrowser
 from flask import Flask, render_template
 import djs, rawLogic, time
 
-app = Flask(__name__, static_url_path="/", static_folder="static")
+app = Flask(__name__, static_url_path="")
 
 
 class SampleApp(tk.Tk):
@@ -328,7 +328,7 @@ def flask_main():
 
 @app.route("/")
 def indexpage():
-    return render_template("map.html")
+    return render_template("index.html")
 
 
 if __name__ == "__main__":
