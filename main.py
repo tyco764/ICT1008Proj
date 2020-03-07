@@ -7,10 +7,11 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from geopy.distance import geodesic
-import folium, flask, threading, webbrowser
+import folium, threading, webbrowser
+from flask import Flask, render_template
 import djs, rawLogic, time
 
-app = flask.Flask(__name__, static_url_path="/", static_folder="static")
+app = Flask(__name__, static_url_path="/", static_folder="static")
 
 
 class SampleApp(tk.Tk):
@@ -172,7 +173,7 @@ class AlgoPage(tk.Frame):
         but = tk.Button(self, text="Best Route", command=lambda: astaralgo(self))
         but.place(x=200, y=190, width=100, height=50)
 
-        but2 = tk.Button(self, text="Best Route Debug)", command=lambda: astaralgo(self))
+        but2 = tk.Button(self, text="Best Route Debug)", command=lambda: bestalgo(self))
         but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Return",
@@ -215,18 +216,19 @@ def astaralgo(self):
     print("Time Taken is", endtime)
 
 
-def bestalgo(self, debug):
-    lat = [1.37244, 1.37741]
-    long = [103.89379, 103.84876]
+def bestalgo(self):
+    self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
+    self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
 
-    dist = getdistance(self, lat[0], long[0], lat[1], long[1])
+    dist = getdistance(self, self.controller.routelat[0], self.controller.routelong[0],
+                       self.controller.routelat[1], self.controller.routelong[1])
     print("Distance between Hougang Mall and SIT@NYP is: ", dist)
 
-    displaymap(self, lat, long, debug)
+    displaymap(self)
 
 
 # @app.route('/')
-def displaymap(self, debug):
+def displaymap(self):
     # takes in an array of latitude and longitude and draws them onto openstreetmap
     long = self.controller.routelong.copy()
     lat = self.controller.routelat.copy()
@@ -237,9 +239,11 @@ def displaymap(self, debug):
     for i in range(len(route)):
         folium.Marker(route[i]).add_to(map)
         # popup=names[]
+    folium.PolyLine(route).add_to(map)
 
-    map.save("map.html")
-    webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
+    map.save("templates/map.html")
+    #webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
+    webbrowser.open("http://127.0.0.1:5000")
     self.controller.show_frame("StartPage")
 
 
@@ -321,6 +325,10 @@ def tk_main():
 
 def flask_main():
     app.run()
+
+@app.route("/")
+def indexpage():
+    return render_template("map.html")
 
 
 if __name__ == "__main__":
