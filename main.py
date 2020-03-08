@@ -144,7 +144,7 @@ class SearchPage(tk.Frame):
         startlabel.place(x=90, y=98)
 
         startdest = tk.StringVar()
-        startdest.set("Punggol MRT")
+        startdest.set("612B")
         self.start = tk.Entry(self, justify='left', text=startdest)
         self.start.focus()
         self.start.place(x=203, y=100, width=250, height=50)
@@ -154,7 +154,7 @@ class SearchPage(tk.Frame):
 
         # large_font = ('Verdana', 14)
         enddest = tk.StringVar()
-        enddest.set("Damai LRT")
+        enddest.set("293")
         self.end = tk.Entry(self, justify='left', text=enddest)
         self.end.place(x=203, y=180, width=250, height=50)
         self.end.bind('<Return>')
