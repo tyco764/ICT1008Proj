@@ -177,10 +177,15 @@ class AlgoPage(tk.Frame):
         but2 = tk.Button(self, text="Best Route Debug)", command=lambda: bestalgo(self))
         but2.place(x=310, y=190, width=100, height=50)
 
-        button = tk.Button(self, text="Return",
+        button = tk.Button(self, text="Search Again",
                            command=lambda: [controller.show_frame("SearchPage")])
         button.pack()
         button.place(x=200, y=290, width=100, height=50, )
+
+        returnbtn = tk.Button(self, text="Return",
+                           command=lambda: [controller.show_frame("StartPage")])
+        returnbtn.pack()
+        returnbtn.place(x=310, y=290, width=100, height=50, )
 
 
 def astaralgo(self):
@@ -213,26 +218,29 @@ def astaralgo(self):
 
     self.controller.route = rawLogic.AStar(G, startNode, endNode)
     print(self.controller.route)
+    if self.controller.route == -1:
+        msgbox.showerror("Error", "No Paths Found")
 
-    #hdbarr = self.controller.hdbdf.to_numpy()
-    searchdf = self.controller.hdbdf.copy(deep=True)
-    searchdf["name"] = searchdf["name"].apply(str)
-    hdbarr = searchdf.to_numpy()
-    hdbarr = hdbarr[np.argsort(hdbarr[:,0])]
+    else:
+        #hdbarr = self.controller.hdbdf.to_numpy()
+        searchdf = self.controller.hdbdf.copy(deep=True)
+        searchdf["name"] = searchdf["name"].apply(str)
+        hdbarr = searchdf.to_numpy()
+        hdbarr = hdbarr[np.argsort(hdbarr[:,0])]
 
-    self.controller.routelong = []
-    self.controller.routelat = []
-    for i in range(len(self.controller.route)):
-        idx = binSearchAlgo(self, hdbarr, str(self.controller.route[i]), 0)
-        if idx is not None:
-            self.controller.routelong.append(hdbarr[idx][1])
-            self.controller.routelat.append(hdbarr[idx][2])
+        self.controller.routelong = []
+        self.controller.routelat = []
+        for i in range(len(self.controller.route)):
+            idx = binSearchAlgo(self, hdbarr, str(self.controller.route[i]), 0)
+            if idx is not None:
+                self.controller.routelong.append(hdbarr[idx][1])
+                self.controller.routelat.append(hdbarr[idx][2])
 
-    #print(self.controller.routelong)
-    displaymap(self)
+        #print(self.controller.routelong)
+        displaymap(self)
 
-    endtime = time.time() - starttime
-    print("Time Taken is", endtime)
+        endtime = time.time() - starttime
+        print("Time Taken is", endtime)
 
 
 def bestalgo(self):
