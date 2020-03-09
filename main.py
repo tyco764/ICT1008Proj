@@ -12,6 +12,7 @@ from flask import Flask, render_template
 import djs, rawLogic, time
 
 app = Flask(__name__, static_url_path="")
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 
 class SampleApp(tk.Tk):
@@ -210,7 +211,25 @@ def astaralgo(self):
     #print(startNode)
     endNode = self.controller.enddest[0]
 
-    print(rawLogic.AStar(G, startNode, endNode))
+    self.controller.route = rawLogic.AStar(G, startNode, endNode)
+    print(self.controller.route)
+
+    #hdbarr = self.controller.hdbdf.to_numpy()
+    searchdf = self.controller.hdbdf.copy(deep=True)
+    searchdf["name"] = searchdf["name"].apply(str)
+    hdbarr = searchdf.to_numpy()
+    hdbarr = hdbarr[np.argsort(hdbarr[:,0])]
+
+    self.controller.routelong = []
+    self.controller.routelat = []
+    for i in range(len(self.controller.route)):
+        idx = binSearchAlgo(self, hdbarr, str(self.controller.route[i]), 0)
+        if idx is not None:
+            self.controller.routelong.append(hdbarr[idx][1])
+            self.controller.routelat.append(hdbarr[idx][2])
+
+    #print(self.controller.routelong)
+    displaymap(self)
 
     endtime = time.time() - starttime
     print("Time Taken is", endtime)
@@ -241,7 +260,7 @@ def displaymap(self):
         # popup=names[]
     folium.PolyLine(route).add_to(map)
 
-    map.save("templates/map.html")
+    map.save("static/map.html")
     #webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
     webbrowser.open("http://127.0.0.1:5000")
     self.controller.show_frame("StartPage")
@@ -269,6 +288,7 @@ def binSearch(self, df, query, query2):
 def binSearchAlgo(self, array, query, col):
     lo = 0
     high = len(array) - 1
+    middle = 0
 
     while lo <= high:
         middle = (lo + high) // 2
@@ -282,7 +302,7 @@ def binSearchAlgo(self, array, query, col):
 
 
 def csvreader(self):
-    if self.controller.filenames["hdb"].get() and self.controller.filenames["road"].get() and self.controller.filenames["edges"].get() :
+    if self.controller.filenames["hdb"].get() and self.controller.filenames["road"].get() and self.controller.filenames["edges"].get():
 
 
         self.controller.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
@@ -337,64 +357,4 @@ if __name__ == "__main__":
     flt.start()
     tk_main()
 
-'''
 
-def formEdges(self, coord1, coord2, c, g):
-    # plt.plot((coord1[0], coord2[0]), (coord1[1], coord2[1]), 'b')
-    # plt.plot((A[0], B[0]), (A[1], B[1]), 'rs')
-    alabel = c.index(coord1)
-    blabel = c.index(coord2)
-    distance = getdistance(self, coord1[1], coord1[0], coord2[1], coord2[0])
-    g.append((str(alabel), str(blabel), distance))
-
-
-def drawPath(pathing, coordinates):
-    for i in range(len(pathing) - 1):
-        current = int(pathing[i])
-        next = int(pathing[i + 1])
-        plt.plot((coordinates[current][0], coordinates[next][0]), (coordinates[current][1], coordinates[next][1]), 'r')
-        plt.plot((coordinates[current][0], coordinates[next][0]), (coordinates[current][1], coordinates[next][1]), 'rs')
-
-def djikstraalgo(self, debug):
-    # random vertices
-    coordinates = [(103.85779, 1.36944), (103.85779, 1.37244), (103.85979, 1.37444), (103.85379, 1.37244),
-                   (103.85379, 1.37544), (103.84876, 1.37544), (103.85376, 1.38041)]
-    s = '0'
-    # for i in coordinates:
-    #    plt.plot(i[0], i[1], 'ro')
-    #    plt.text(i[0], i[1], s,fontsize=9)
-    #    s = str(int(s) + 1)
-    edges = []
-    formEdges(self, coordinates[0], coordinates[2], coordinates, edges)
-    formEdges(self, coordinates[0], coordinates[3], coordinates, edges)
-    formEdges(self, coordinates[3], coordinates[5], coordinates, edges)
-    formEdges(self, coordinates[5], coordinates[6], coordinates, edges)
-    formEdges(self, coordinates[6], coordinates[2], coordinates, edges)
-    formEdges(self, coordinates[2], coordinates[1], coordinates, edges)
-    formEdges(self, coordinates[1], coordinates[4], coordinates, edges)
-    formEdges(self, coordinates[4], coordinates[3], coordinates, edges)
-    formEdges(self, coordinates[0], coordinates[4], coordinates, edges)
-    formEdges(self, coordinates[0], coordinates[1], coordinates, edges)
-    formEdges(self, coordinates[4], coordinates[6], coordinates, edges)
-    print(edges)
-    graph = djs.Graph(edges)
-    pathing = graph.dijkstra("0", "6")
-    print(pathing)
-
-    long, lat = [], []
-    for i in range(len(pathing)):
-        # print(coordinates[int(pathing[i])][0])
-        # appends longitude and latitude based on order of path
-        self.controller.routelong.append(coordinates[int(pathing[i])][0])
-        self.controller.routelat.append(coordinates[int(pathing[i])][1])
-        # self.controller.route.append(coordinates[int(pathing[i])])
-
-    # drawPath(pathing, coordinates)
-    # if (debug):
-
-    # display map using longitude and latitude
-    displaymap(self, debug)
-
-
-
-'''
