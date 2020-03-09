@@ -26,7 +26,9 @@ def AStar(graph, start, end):
 	runcounter = 0
 	tim = time.time()
 	print("0")
-
+	#hardcoded(debug purpose)
+	graph.nodes[endNode]['hVal'] = 0
+	
 	while True:
 		curNode = sortLowF(graph, openlist)[0]
 		print("curNode: ", curNode)
