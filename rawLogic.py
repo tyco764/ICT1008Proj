@@ -6,9 +6,9 @@ from operator import itemgetter
 
 
 def backtrack(graph, curNode, path, closedlist):
-    path.remove(curNode)
-    curNode = path[len(path)-1]
-    openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
+	path.remove(curNode)
+	curNode = path[len(path)-1]
+	openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 
 
 def sortLowF(graph, list1, ):
@@ -19,7 +19,7 @@ def sortLowF(graph, list1, ):
 
 def AStar(graph, start, end):
 	if not graph.has_node(start) or not graph.has_node(end):
-	        return "Invalid Input.\n"
+		return "Invalid Input.\n"
 
 	openlist = [start]
 	closedlist = []
@@ -34,17 +34,17 @@ def AStar(graph, start, end):
 	
 	while True:
 		if len(openlist) == 0:
-            		print("No paths found.")
-            		backtrack(graph, curNode, path, closedlist)
+			print("No paths found.")
+			backtrack(graph, curNode, path, closedlist)
 		try:
             		curNode = sortLowF(graph,openlist)[0]
 		except IndexError:
-            		curNode = path[len(path)-1]
-            		backtrack(graph,curNode,path, closedlist)
+			curNode = path[len(path)-1]
+			backtrack(graph,curNode,path, closedlist)
 
-        	openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
-        	path.append(curNode)
-        	for x in openlist:
+		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
+		path.append(curNode)
+		for x in openlist:
 			if x is end:
 				path.append(x)
 				print ("Path found!")
