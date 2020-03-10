@@ -26,10 +26,21 @@ def AStar(graph, start, end):
 	runcounter = 0
 	tim = time.time()
 	print("0")
+	curNode = None
 	#hardcoded(debug purpose)
 	graph.nodes[end]['hVal'] = 0
 	
 	while True:
+		if len(openlist) == 0:
+			print("No paths found.")
+			path.remove(curNode)
+			closedlist.remove(curNode)
+			tempnode = curNode
+			curNode = path[len(path)-1]
+			openlist = sortLowF(graph, list(graph.neighbors(curNode)))
+			openlist.remove(tempnode)
+
+
 		curNode = sortLowF(graph, openlist)[0]
 		print("curNode: ", curNode)
 
@@ -37,17 +48,15 @@ def AStar(graph, start, end):
 		if not graph.has_node(start) or not graph.has_node(end):
 			print("Invalid nodes entered.")
 			return -1
-			break
-		if len(openlist) == 0:
-			print("No paths found.")
-			return -1
-			break
+
+
 		if curNode == end:
 			print("Shortest Path Found!")
 			path.append(curNode)
 			return path
-			break
 
+		# to find hVal (direct dist) from one node straight to end node
+		# function to find gVal (collective dist) distance of path
 		if curNode == start:
 			graph.nodes[curNode]['gVal'] = 0
 			graph.nodes[curNode]['hVal'] = 0
@@ -74,5 +83,6 @@ def AStar(graph, start, end):
 
 		runcounter += 1
 		if runcounter % 10000 == 0: print(time.time() - tim, path)
-	return path
+
+	#return path
 
