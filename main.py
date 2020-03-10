@@ -279,7 +279,7 @@ def binSearch(self, df, query, query2):
     searchdf["name"] = searchdf["name"].apply(str)
     searcharr = searchdf.to_numpy()
 
-    np.chararray.sort(searcharr, axis=0)
+    searcharr = searcharr[np.argsort(searcharr[:, 0])]
     startvalue = binSearchAlgo(self, searcharr, query.get(), 0)
     endvalue = binSearchAlgo(self, searcharr, query2.get(), 0)
 
