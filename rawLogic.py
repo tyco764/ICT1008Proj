@@ -37,6 +37,11 @@ def AStar(graph, start, end):
 		if len(openlist) == 0:
 			print("No paths found.")
 			backtrack(graph, curNode, path, closedlist)
+
+		if len(path) > 2:
+			#print(len(path))
+			if graph.nodes[path[len(path)-1]]['hVal'] > graph.nodes[path[len(path)-2]]['hVal']:
+				backtrack(graph, curNode, path, closedlist)
 		try:
 			curNode = sortLowF(graph, openlist)[0]
 		except IndexError:
