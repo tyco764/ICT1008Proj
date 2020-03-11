@@ -37,8 +37,8 @@ with open('BusRoutes.csv', mode = 'r') as csv_file:
                     least_stops_print = (str(least_stops) + " stop(s) with Bus Service " + row[0])
                 elif least_stops_temp == least_stops:
                     least_stops_print += ", " + row[0]
-    
-    if least_stops == 100:
-        print("There are no direct buses.")
-    else:
+                    
+    if (least_stops != 32):
         print(least_stops_print)
+    else:
+        print("There are no direct buses.")
