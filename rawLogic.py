@@ -10,7 +10,7 @@ def sortLowF(graph, list1):
 
 def backtrack(graph, curNode, path, closedlist):
 	path.remove(curNode)
-	if len(path) is not 0:
+	if len(path) != 0:
 		curNode = path[len(path)-1]
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 
@@ -42,7 +42,7 @@ def AStar(graph, start, end):
 		try:
 			curNode = sortLowF(graph, openlist)[0]
 		except IndexError:
-			if len(path) is 0:
+			if len(path) == 0:
 				break
 			else:
 				curNode = path[len(path) -1]
