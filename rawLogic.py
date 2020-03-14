@@ -1,5 +1,4 @@
 import time
-
 import matplotlib.pyplot as plt
 import networkx as nx
 from operator import itemgetter
@@ -14,7 +13,6 @@ def backtrack(graph, curNode, path, closedlist):
 	if len(path) is not 0:
 		curNode = path[len(path)-1]
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
-
 
 
 def AStar(graph, start, end):
@@ -39,7 +37,6 @@ def AStar(graph, start, end):
 			backtrack(graph, curNode, path, closedlist)
 
 		if len(path) > 2:
-			#print(len(path))
 			if graph.nodes[path[len(path)-1]]['hVal'] > graph.nodes[path[len(path)-2]]['hVal']:
 				backtrack(graph, curNode, path, closedlist)
 		try:
@@ -51,18 +48,17 @@ def AStar(graph, start, end):
 				curNode = path[len(path) -1]
 				backtrack(graph, curNode, path, closedlist)
 
-
-		#curNode = sortLowF(graph, openlist)[0]
 		path.append(curNode)
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 		for x in openlist:
+			graph.nodes[x]['gVal'] = graph.nodes[curNode]['gVal'] + graph.edges[curNode, x]['weight']
+			graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
 			if x == end:
 				path.append(x)
-				print("Path found!")
+				#collective dist, need times walking time
+				#average walking speed is ~5kmh (4.988...kmh) / ~1.3889m/s
+				print("Path found!\nCollective dist: ", graph.nodes[end]['gVal'])
 				return path
-			else:
-				graph.nodes[x]['gVal'] = graph.nodes[curNode]['gVal'] + graph.edges[curNode,x]['weight']
-				graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
 
 		closedlist.append(curNode)
 		print(path)
@@ -70,6 +66,3 @@ def AStar(graph, start, end):
 	if runcounter % 10000 == 0: print(time.time() - tim, path)
 	print("no path found")
 	return -1
-
-	#return path
-
