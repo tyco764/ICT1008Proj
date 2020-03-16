@@ -64,6 +64,7 @@ def BusAlgo(csvdata):
         if transfer == 0:
             return "There are no bus routes with 1 transfer." 
         else:
+            least_stops_print = "Bus routes with " + str(transfer) + " transfer(s):" + '\n' + least_stops_print
             return least_stops_print
 
 start_point = '65221'
