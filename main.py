@@ -29,11 +29,12 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.filenames = {
-            "hdb": tk.StringVar(),
-            "road": tk.StringVar(),
-            "edges": tk.StringVar(),
-            "busroute": tk.StringVar(),
-            "busedges": tk.StringVar(),
+            "folder": None,
+            "hdb": '/hdb(edited).csv',
+            "road": '/roads.csv',
+            "edges": '/edges(edited).csv',
+            "busroute": '/BusRoutes.csv',
+            "busedges": '/busedges.csv',
         }
 
         self.startdest = []
@@ -74,62 +75,34 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        h1 = Font(family="Helvetica", size=18)  # weight="bold"
-        hdblabel = tk.Label(self, text="Nodes CSV", font=h1)
-        hdblabel.place(x=90, y=45)
+        h1 = Font(family="Helvetica", size=20)  # weight="bold"
 
-        # self.hdb = tk.Entry(self, justify='left', state='disabled')
-        entry_hdb = tk.StringVar()
-        hdb_file = tk.Entry(self, text=entry_hdb, state='disabled')
-        hdb_file.place(x=250, y=50)
-        hdb_filebtn = tk.Button(self, text='Node File',
-                                command=lambda: enter_file(self, entry_hdb, "hdb"))
-        hdb_filebtn.place(x=380, y=45)
+        startlabel = tk.Label(self, text="CSV Folder", font=h1)
+        startlabel.place(x=40, y=105)
 
-        edgeslabel = tk.Label(self, text="Edges CSV", font=h1)
-        edgeslabel.place(x=90, y=95)
+        folder = tk.StringVar()
+        folder_entry = tk.Entry(self, justify='left', text=folder, state='disabled')
+        folder_entry.focus()
+        folder_entry.place(x=200, y=100, width=160, height=50)
 
-        entry_edges = tk.StringVar()
-        edges_file = tk.Entry(self, text=entry_edges, state='disabled')
-        edges_file.place(x=250, y=100)
-        edges_filebtn = tk.Button(self, text='Edges File',
-                                 command=lambda: enter_file(self, entry_edges, "edges"))
-        edges_filebtn.place(x=380, y=95)
-
-        busedgeslabel = tk.Label(self, text="Bus Edges CSV", font=h1)
-        busedgeslabel.place(x=50, y=145)
-
-        # self.hdb = tk.Entry(self, justify='left', state='disabled')
-        entry_busedges = tk.StringVar()
-        busedges_file = tk.Entry(self, text=entry_busedges, state='disabled')
-        busedges_file.place(x=250, y=150)
-        busedges_filebtn = tk.Button(self, text='Bus Edges File',
-                                     command=lambda: enter_file(self, entry_busedges, "busedges"))
-        busedges_filebtn.place(x=380, y=145)
-
-        busroutelabel = tk.Label(self, text="Bus Routes CSV", font=h1)
-        busroutelabel.place(x=50, y=195)
-
-        bus_route = tk.StringVar()
-        busroute_file = tk.Entry(self, text=bus_route, state='disabled')
-        busroute_file.place(x=250, y=200)
-        busroute_filebtn = tk.Button(self, text='Bus Edges',
-                                 command=lambda: enter_file(self, bus_route, "busroute"))
-        busroute_filebtn.place(x=380, y=195)
+        folder_filebtn = tk.Button(self, text='Browse',
+                                  command=lambda: enter_file(self, folder))
+        folder_filebtn.pack()
+        folder_filebtn.place(x=380, y=100, width=100, height=50)
 
         submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
         submit_btn.pack()
-        submit_btn.place(x=200, y=290, width=100, height=50, )
+        submit_btn.place(x=200, y=290, width=100, height=50)
 
 
-def enter_file(self, entry, file_name):
+def enter_file(self, entry):
     # set default filetype and restrict user to select CSV files only
-    filetype = [("CSV file", "*.csv")]
-    filename = filedialog.askopenfilename(initialdir="./csv", title="Select file", defaultextension=".csv",
-                                          filetypes=filetype)
-    if filename != "":
-        entry.set(filename)
-        self.controller.filenames[file_name].set(filename)  # store filename as into dictionary
+    #filetype = [("CSV file", "*.csv")]
+    folder = filedialog.askdirectory()
+
+    if folder != "":
+        entry.set(folder)
+        self.controller.filenames["folder"] = folder  # store filename as into dictionary
     else:
         msgbox.showerror("Error", "Please try again!")
 
@@ -215,10 +188,6 @@ def astaralgo(self):
     startNode = self.controller.startdest[0]
     #print(startNode)
     endNode = self.controller.enddest[0]
-
-    
-
-
 
     self.controller.route = rawLogic.AStar(G, startNode, endNode)
     print(self.controller.route)
@@ -323,18 +292,22 @@ def binSearchAlgo(self, array, query, col):
 
 
 def csvreader(self):
-    if self.controller.filenames["hdb"].get() and self.controller.filenames["edges"].get():
-        self.controller.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
-        self.controller.edgesdf = pd.read_csv(self.controller.filenames["edges"].get())
-        if self.controller.filenames["busroute"].get() and self.controller.filenames["busedges"].get():
-            self.controller.busedgesdf = pd.read_csv(self.controller.filenames["busedges"].get())
-            #self.controller.roadedgesdf = pd.read_csv(self.controller.filenames["roadedges"].get())
 
-        print(self.controller.hdbdf.head(5), "\n")
-        self.controller.show_frame("SearchPage")
+    #self.controller.filenames["folder"] = tk.filedialog.askdirectory()
+    print(self.controller.filenames["folder"]+self.controller.filenames["hdb"])
 
-        #else:
-            #msgbox.showerror("Error", "Please try again!")
+    if self.controller.filenames["folder"] is not None:
+        try:
+            #print(self.controller.filenames["folder"])
+            self.controller.hdbdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["hdb"])
+            self.controller.edgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["edges"])
+            self.controller.busedgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busedges"])
+            self.controller.roadedgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busroute"])
+
+            print(self.controller.hdbdf.head(5), "\n")
+            self.controller.show_frame("SearchPage")
+        except FileNotFoundError:
+            msgbox.showerror("Error", "Please try again!")
     else:
         msgbox.showerror("Error", "Please try again!")
 
