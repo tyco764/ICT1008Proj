@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import networkx as nx
+import BusRoutesAlgo as bus
 from geopy.distance import geodesic
 import folium, threading, webbrowser
 from flask import Flask, render_template
-import djs, rawLogic, time
+import djs, rawLogic, time, csv
 
 app = Flask(__name__, static_url_path="")
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -31,7 +32,7 @@ class SampleApp(tk.Tk):
             "hdb": tk.StringVar(),
             "road": tk.StringVar(),
             "edges": tk.StringVar(),
-            "busedges": tk.StringVar(),
+            "busroute": tk.StringVar(),
             "roadedges": tk.StringVar(),
         }
 
@@ -107,14 +108,14 @@ class StartPage(tk.Frame):
                                  command=lambda: enter_file(self, entry_edges, "edges"))
         edges_filebtn.place(x=380, y=155)
 
-        busedgeslabel = tk.Label(self, text="Bus Edges CSV", font=h1)
+        busedgeslabel = tk.Label(self, text="Bus Routes CSV", font=h1)
         busedgeslabel.place(x=50, y=195)
 
         bus_edges = tk.StringVar()
         busedges_file = tk.Entry(self, text=bus_edges, state='disabled')
         busedges_file.place(x=250, y=200)
         busedges_filebtn = tk.Button(self, text='Bus Edges',
-                                 command=lambda: enter_file(self, bus_edges, "busedges"))
+                                 command=lambda: enter_file(self, bus_edges, "busroute"))
         busedges_filebtn.place(x=380, y=205)
 
         submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
@@ -174,7 +175,7 @@ class AlgoPage(tk.Frame):
         but = tk.Button(self, text="Best Route", command=lambda: astaralgo(self))
         but.place(x=200, y=190, width=100, height=50)
 
-        but2 = tk.Button(self, text="Best Route Debug)", command=lambda: bestalgo(self))
+        but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self))
         but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Search Again",
@@ -243,15 +244,22 @@ def astaralgo(self):
         print("Time Taken is", endtime)
 
 
-def bestalgo(self):
-    self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
-    self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
+def busalgo(self):
+    start_point = '65221'
+    end_point = '65449'
 
-    dist = getdistance(self, self.controller.routelat[0], self.controller.routelong[0],
-                       self.controller.routelat[1], self.controller.routelong[1])
-    print("Distance between Hougang Mall and SIT@NYP is: ", dist)
+    with open(self.controller.filenames['busroute'].get(), mode='r') as csv_file:
+        csvdata = csv.reader(csv_file, delimiter=',')
+        least_stops_print = bus.BusAlgo(csv_file, csvdata, start_point, end_point)
 
-    displaymap(self)
+    #self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
+    #self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
+
+    #dist = getdistance(self, self.controller.routelat[0], self.controller.routelong[0],
+    #                   self.controller.routelat[1], self.controller.routelong[1])
+    #print("Distance between Hougang Mall and SIT@NYP is: ", dist)
+
+    #displaymap(self)
 
 
 # @app.route('/')
@@ -314,10 +322,10 @@ def csvreader(self):
 
 
         self.controller.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
-        self.controller.roaddf = pd.read_csv(self.controller.filenames["road"].get())
+        #self.controller.roaddf = pd.read_csv(self.controller.filenames["road"].get())
         self.controller.edgesdf = pd.read_csv(self.controller.filenames["edges"].get())
-        if self.controller.filenames["busedges"].get() and self.controller.filenames["roadedges"].get():
-            self.controller.busedgesdf = pd.read_csv(self.controller.filenames["busedges"].get())
+        if self.controller.filenames["busroute"].get() and self.controller.filenames["roadedges"].get():
+            #self.controller.busedgesdf = pd.read_csv(self.controller.filenames["busedges"].get())
             self.controller.roadedgesdf = pd.read_csv(self.controller.filenames["roadedges"].get())
 
         print(self.controller.hdbdf.head(5), "\n")
