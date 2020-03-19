@@ -33,7 +33,7 @@ class SampleApp(tk.Tk):
             "road": tk.StringVar(),
             "edges": tk.StringVar(),
             "busroute": tk.StringVar(),
-            "roadedges": tk.StringVar(),
+            "busedges": tk.StringVar(),
         }
 
         self.startdest = []
@@ -75,48 +75,47 @@ class StartPage(tk.Frame):
         self.controller = controller
 
         h1 = Font(family="Helvetica", size=18)  # weight="bold"
-        hdblabel = tk.Label(self, text="HDB CSV", font=h1)
+        hdblabel = tk.Label(self, text="Nodes CSV", font=h1)
         hdblabel.place(x=90, y=45)
 
         # self.hdb = tk.Entry(self, justify='left', state='disabled')
         entry_hdb = tk.StringVar()
         hdb_file = tk.Entry(self, text=entry_hdb, state='disabled')
         hdb_file.place(x=250, y=50)
-        hdb_filebtn = tk.Button(self, text='HDB File',
+        hdb_filebtn = tk.Button(self, text='Node File',
                                 command=lambda: enter_file(self, entry_hdb, "hdb"))
         hdb_filebtn.place(x=380, y=45)
 
-        h1 = Font(family="Helvetica", size=18)  # weight="bold"
-        roadlabel = tk.Label(self, text="Road CSV", font=h1)
-        roadlabel.place(x=90, y=95)
-
-        # self.hdb = tk.Entry(self, justify='left', state='disabled')
-        entry_road = tk.StringVar()
-        road_file = tk.Entry(self, text=entry_road, state='disabled')
-        road_file.place(x=250, y=100)
-        road_filebtn = tk.Button(self, text='Road File',
-                                 command=lambda: enter_file(self, entry_road, "road"))
-        road_filebtn.place(x=380, y=105)
-
         edgeslabel = tk.Label(self, text="Edges CSV", font=h1)
-        edgeslabel.place(x=90, y=145)
+        edgeslabel.place(x=90, y=95)
 
         entry_edges = tk.StringVar()
         edges_file = tk.Entry(self, text=entry_edges, state='disabled')
-        edges_file.place(x=250, y=150)
+        edges_file.place(x=250, y=100)
         edges_filebtn = tk.Button(self, text='Edges File',
                                  command=lambda: enter_file(self, entry_edges, "edges"))
-        edges_filebtn.place(x=380, y=155)
+        edges_filebtn.place(x=380, y=95)
 
-        busedgeslabel = tk.Label(self, text="Bus Routes CSV", font=h1)
-        busedgeslabel.place(x=50, y=195)
+        busedgeslabel = tk.Label(self, text="Bus Edges CSV", font=h1)
+        busedgeslabel.place(x=50, y=145)
 
-        bus_edges = tk.StringVar()
-        busedges_file = tk.Entry(self, text=bus_edges, state='disabled')
-        busedges_file.place(x=250, y=200)
-        busedges_filebtn = tk.Button(self, text='Bus Edges',
-                                 command=lambda: enter_file(self, bus_edges, "busroute"))
-        busedges_filebtn.place(x=380, y=205)
+        # self.hdb = tk.Entry(self, justify='left', state='disabled')
+        entry_busedges = tk.StringVar()
+        busedges_file = tk.Entry(self, text=entry_busedges, state='disabled')
+        busedges_file.place(x=250, y=150)
+        busedges_filebtn = tk.Button(self, text='Bus Edges File',
+                                     command=lambda: enter_file(self, entry_busedges, "busedges"))
+        busedges_filebtn.place(x=380, y=145)
+
+        busroutelabel = tk.Label(self, text="Bus Routes CSV", font=h1)
+        busroutelabel.place(x=50, y=195)
+
+        bus_route = tk.StringVar()
+        busroute_file = tk.Entry(self, text=bus_route, state='disabled')
+        busroute_file.place(x=250, y=200)
+        busroute_filebtn = tk.Button(self, text='Bus Edges',
+                                 command=lambda: enter_file(self, bus_route, "busroute"))
+        busroute_filebtn.place(x=380, y=195)
 
         submit_btn = tk.Button(self, text='Submit', command=lambda: csvreader(self))
         submit_btn.pack()
@@ -217,12 +216,18 @@ def astaralgo(self):
     #print(startNode)
     endNode = self.controller.enddest[0]
 
+    
+
+
+
     self.controller.route = rawLogic.AStar(G, startNode, endNode)
     print(self.controller.route)
+
     if self.controller.route == -1:
         msgbox.showerror("Error", "No Paths Found")
 
     else:
+        #printing out the path -- Walking (WIP)
         #hdbarr = self.controller.hdbdf.to_numpy()
         searchdf = self.controller.hdbdf.copy(deep=True)
         searchdf["name"] = searchdf["name"].apply(str)
@@ -318,15 +323,12 @@ def binSearchAlgo(self, array, query, col):
 
 
 def csvreader(self):
-    if self.controller.filenames["hdb"].get() and self.controller.filenames["road"].get() and self.controller.filenames["edges"].get():
-
-
+    if self.controller.filenames["hdb"].get() and self.controller.filenames["edges"].get():
         self.controller.hdbdf = pd.read_csv(self.controller.filenames["hdb"].get())
-        #self.controller.roaddf = pd.read_csv(self.controller.filenames["road"].get())
         self.controller.edgesdf = pd.read_csv(self.controller.filenames["edges"].get())
-        if self.controller.filenames["busroute"].get() and self.controller.filenames["roadedges"].get():
-            #self.controller.busedgesdf = pd.read_csv(self.controller.filenames["busedges"].get())
-            self.controller.roadedgesdf = pd.read_csv(self.controller.filenames["roadedges"].get())
+        if self.controller.filenames["busroute"].get() and self.controller.filenames["busedges"].get():
+            self.controller.busedgesdf = pd.read_csv(self.controller.filenames["busedges"].get())
+            #self.controller.roadedgesdf = pd.read_csv(self.controller.filenames["roadedges"].get())
 
         print(self.controller.hdbdf.head(5), "\n")
         self.controller.show_frame("SearchPage")
