@@ -1,5 +1,7 @@
+import main
 import csv
 import collections
+
 
 
 # This algorthm is still WIP. This algorihm is only considering direct buses as of now.
@@ -9,7 +11,53 @@ import collections
 # print("Enter end point: ")
 # end_point = input()
 
-def BusAlgo(csv_file, csvdata, start_point, end_point):
+
+def getdist(self, bus, startstop, endstop):
+    busdf = self.controller.busedgesdf.copy(deep=True)
+    busarr = busdf.to_numpy()
+    idx = main.binSearchAlgo(self, busarr, bus, 0)
+    while busarr[idx][0] == bus:
+        idx -= 1
+    idx += 1
+
+    # 1 and 4
+    distance = 0
+    starttemp = busarr[idx][1]
+    starttemp = starttemp.split(' ')
+    for character in "()":
+        starttemp[-1] = starttemp[-1].replace(character, "")
+
+    while starttemp[-1] != str(startstop):
+        if busarr[idx][0] == bus:
+            idx += 1
+            starttemp = busarr[idx][1]
+            starttemp = starttemp.split(' ')
+            for character in "()":
+                starttemp[-1] = starttemp[-1].replace(character, "")
+        else:
+            return -1
+
+    endtemp = busarr[idx][4]
+    endtemp = endtemp.split(' ')
+    for character in "()":
+        endtemp[-1] = endtemp[-1].replace(character, "")
+
+    while endtemp[-1] != str(endstop):
+        if busarr[idx][0] == bus:
+            distance += busarr[idx][7]
+            idx += 1
+            endtemp = busarr[idx][4]
+            endtemp = endtemp.split(' ')
+            for character in "()":
+                endtemp[-1] = endtemp[-1].replace(character, "")
+        else:
+            return -1
+
+    distance += busarr[idx][7]
+    return distance
+
+
+def BusAlgo(self, csv_file, csvdata, start_point, end_point):
     new = []
     start = []
     end = []

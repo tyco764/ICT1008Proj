@@ -41,10 +41,9 @@ class SampleApp(tk.Tk):
         self.enddest = []
 
         self.hdbdf = pd.DataFrame()
-        self.roaddf = pd.DataFrame()
         self.edgesdf = pd.DataFrame()
         self.busedgesdf = pd.DataFrame()
-        self.roadedgesdf = pd.DataFrame()
+        self.busroutedf = pd.DataFrame()
 
         #debug
         pd.set_option('display.max_columns', 10)
@@ -189,8 +188,14 @@ def astaralgo(self):
     #print(startNode)
     endNode = self.controller.enddest[0]
 
+
+    #get walking route
     self.controller.route = rawLogic.AStar(G, startNode, endNode)
     print(self.controller.route)
+
+
+
+
 
     if self.controller.route == -1:
         msgbox.showerror("Error", "No Paths Found")
@@ -302,7 +307,7 @@ def csvreader(self):
             self.controller.hdbdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["hdb"])
             self.controller.edgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["edges"])
             self.controller.busedgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busedges"])
-            self.controller.roadedgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busroute"])
+            self.controller.busroutedf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busroute"])
 
             print(self.controller.hdbdf.head(5), "\n")
             self.controller.show_frame("SearchPage")
