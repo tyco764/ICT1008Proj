@@ -125,6 +125,7 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
             transferCount = 0
             stopCounter = 0
             current = mystart.popleft()
+            #print("Current", current)
             if (current[-1] == end_point):
                 if (current[0] != ''):
                     answer.append(current)

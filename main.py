@@ -225,12 +225,13 @@ def astaralgo(self):
 
 
 def busalgo(self):
-    start_point = '65221'
-    end_point = '65449'
+    start_point = 'Blk 303D (65221)'
+    end_point = 'Blk 315B (65449)'
+    busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
 
-    with open(self.controller.filenames['busroute'].get(), mode='r') as csv_file:
+    with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
-        least_stops_print = bus.BusAlgo(csv_file, csvdata, start_point, end_point)
+        least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
 
     #self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
     #self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
