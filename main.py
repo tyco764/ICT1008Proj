@@ -30,11 +30,12 @@ class SampleApp(tk.Tk):
 
         self.filenames = {
             "folder": None,
-            "hdb": '/hdb(edited).csv',
+            "hdb": '/hdb.csv',
             "road": '/roads.csv',
-            "edges": '/edges(edited).csv',
+            "edges": '/edges.csv',
             "busroute": '/BusRoutes.csv',
             "busedges": '/busedges.csv',
+            "busnodes": '/busnodes.csv'
         }
 
         self.startdest = []
