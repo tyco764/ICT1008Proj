@@ -9,6 +9,7 @@ import networkx as nx
 import BusRoutesAlgo as bus
 from geopy.distance import geodesic
 import folium, threading, webbrowser
+from multiprocessing import Process, Manager, Value, Pool
 from flask import Flask, render_template
 import djs, rawLogic, time, csv
 
@@ -77,8 +78,8 @@ class StartPage(tk.Frame):
 
         h1 = Font(family="Helvetica", size=20)  # weight="bold"
 
-        startlabel = tk.Label(self, text="CSV Folder", font=h1)
-        startlabel.place(x=40, y=105)
+        self.startlabel = tk.Label(self, text="CSV Folder", font=h1)
+        self.startlabel.place(x=40, y=105)
 
         folder = tk.StringVar()
         folder_entry = tk.Entry(self, justify='left', text=folder, state='disabled')
@@ -144,10 +145,14 @@ class AlgoPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        h1 = Font(family="Helvetica", size=18)  # weight="bold"
+        self.loadinglabel = tk.Label(self, text="Choose your Algorithm:", font=h1)
+        self.loadinglabel.place(x=90, y=98)
+
         but = tk.Button(self, text="Best Route", command=lambda: astaralgo(self))
         but.place(x=200, y=190, width=100, height=50)
 
-        but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self))
+        but2 = tk.Button(self, text="Bus Route Test", command=lambda: callalgo(self))
         but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Search Again",
@@ -158,7 +163,30 @@ class AlgoPage(tk.Frame):
         returnbtn = tk.Button(self, text="Return",
                            command=lambda: [controller.show_frame("StartPage")])
         returnbtn.pack()
-        returnbtn.place(x=310, y=290, width=100, height=50, )
+        returnbtn.place(x=310, y=290, width=100, height=50)
+
+
+def callalgo(self):
+    #algo = threading.Thread(target=busalgo, args=(self,))
+    #algo.start()
+    '''
+    mgr = Manager()
+    ns = mgr.Namespace()
+    hdbdf = self.controller.hdbdf.copy(deep=True)
+    ns.hdbdf = hdbdf
+    ns.edges = self.controller.edgesdf
+    ns.busedgesdf = self.controller.busedgesdf
+    ns.busroutedf = self.controller.busroutedf
+    ns.busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
+    '''
+    start_point = 'Blk 303D (65221)'
+    end_point = 'Blk 315B (65449)'
+    busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
+    busdf = self.controller.busedgesdf.copy(deep=True)
+    busarr = busdf.to_numpy()
+
+    algo = Process(target=bus.BusAlgo, args=(busfile, busarr, start_point, end_point))
+    algo.start()
 
 
 def astaralgo(self):
@@ -225,14 +253,36 @@ def astaralgo(self):
 
 
 def busalgo(self):
+    currentime = time.time()
+
+    start_point = 'Blk 303D (65221)'
+    end_point = 'Blk 315B (65449)'
+    busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
+    busdf = self.controller.busedgesdf.copy(deep=True)
+    busarr = busdf.to_numpy()
+
+    algo = Process(target=bus.BusAlgo, args=(busfile, busarr, start_point, end_point))
+    algo.start()
+    algo.kill()
+
+
+    '''
     start_point = 'Blk 303D (65221)'
     end_point = 'Blk 315B (65449)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
 
+    # busnum = '83'
+    # print(bus.getdist(self, busnum, start_point, end_point))
+
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
+        self.loadinglabel.config(text="Wait till I'm done...")
+        self.update_idletasks()
+        time.sleep(1)
         least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
-
+        self.loadinglabel.config(text="Choose your Algorithm:")
+        print(time.time() - currentime)
+    '''
     #self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
     #self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
 
@@ -350,7 +400,7 @@ def indexpage():
 
 
 if __name__ == "__main__":
-    flt = threading.Thread(target=flask_main)
+    flt = Process(target=flask_main)
     flt.daemon = True
     flt.start()
     tk_main()
