@@ -147,7 +147,7 @@ class AlgoPage(tk.Frame):
         but = tk.Button(self, text="Best Route", command=lambda: astaralgo(self))
         but.place(x=200, y=190, width=100, height=50)
 
-        but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self))
+        but2 = tk.Button(self, text="Bus Route Test", command=lambda: callalgo(self))
         but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Search Again",
@@ -160,6 +160,9 @@ class AlgoPage(tk.Frame):
         returnbtn.pack()
         returnbtn.place(x=310, y=290, width=100, height=50, )
 
+def callalgo(self):
+    busthread = threading.Thread(target=busalgo, args=[self,])
+    busthread.start()
 
 def astaralgo(self):
     G = nx.Graph()
