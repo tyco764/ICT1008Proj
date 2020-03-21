@@ -45,6 +45,7 @@ class SampleApp(tk.Tk):
         self.edgesdf = pd.DataFrame()
         self.busedgesdf = pd.DataFrame()
         self.busroutedf = pd.DataFrame()
+        self.busnodesdf = pd.DataFrame()
 
         #debug
         pd.set_option('display.max_columns', 10)
@@ -174,28 +175,46 @@ def astaralgo(self):
     print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
 
     hdbarr = self.controller.hdbdf.to_numpy()
+    for i in range(5):
+        print(hdbarr[i])
     for i in range(len(hdbarr)):
-        value = getdistance(self, hdbarr[i][2], hdbarr[i][1],self.controller.enddest[1], self.controller.enddest[2])
+        value = getdistance(hdbarr[i][2], hdbarr[i][1], self.controller.enddest[1], self.controller.enddest[2])
         G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
-
     endtime = time.time() - starttime
     print("Graph Added.")
     print(G.nodes(data=True))
-    print("Time Taken is", endtime)
+    print("Time Taken to add nodes is", endtime)
 
     starttime = time.time()
 
     startNode = self.controller.startdest[0]
+    endNode = []
     #print(startNode)
-    endNode = self.controller.enddest[0]
+    #endNode = self.controller.enddest[0]
+    busnodes = self.controller.busnodesdf.values.tolist()
 
 
+    for i in range(len(busnodes)):
+        try:
+            test = getdistance(self.controller.startdest[1], self.controller.startdest[2],
+                        busnodes[i][2], busnodes[i][1])
+        except ValueError:
+            print(i)
+        busnodes[i].append(test)
+
+    busnodes = sorted(busnodes, key=lambda x: x[4])
+    for i in range(5):
+        print(busnodes[i])
+
+    for i in range(3):
+        endNode.append(busnodes[i][0])
+    print("EndNode: ", endNode[0])
     #get walking route
-    self.controller.route = rawLogic.AStar(G, startNode, endNode)
-    print(self.controller.route)
-
-
-
+    walkingroute = []
+    path = rawLogic.AStar(G, startNode, endNode[0])
+    walkingroute.append(path)
+    print("walking route", walkingroute[0])
+    self.controller.route = walkingroute[0]
 
 
     if self.controller.route == -1:
@@ -224,7 +243,7 @@ def astaralgo(self):
         print("Time Taken is", endtime)
 
 
-def busalgo(self):
+def busalgo(self, start_point, end_point):
     start_point = 'Blk 303D (65221)'
     end_point = 'Cove Stn Exit A (65159)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
@@ -314,6 +333,7 @@ def csvreader(self):
             self.controller.edgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["edges"])
             self.controller.busedgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busedges"])
             self.controller.busroutedf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busroute"])
+            self.controller.busnodesdf = pd.read_csv(self.controller.filenames["folder"] + self.controller.filenames["busnodes"])
 
             print(self.controller.hdbdf.head(5), "\n")
             self.controller.show_frame("SearchPage")
@@ -323,7 +343,7 @@ def csvreader(self):
         msgbox.showerror("Error", "Please try again!")
 
 
-def getdistance(self, startlat, startlong, endlat, endlong):
+def getdistance(startlat, startlong, endlat, endlong):
     startarr = (startlat, startlong)
     endarr = (endlat, endlong)
 
