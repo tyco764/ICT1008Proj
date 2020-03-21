@@ -219,14 +219,15 @@ def astaralgo(self):
 
 
     #get walking route
-    self.controller.route = rawLogic.AStar(G, startNode, endNode)
-    print(self.controller.route)
+    path = mgr.list()
+    walking = Process(target=rawLogic.AStar, args = (G, startNode, endNode, path))
+    walking.start()
+    walking.join()
+    print("Path:", path)
 
 
 
-
-
-    if self.controller.route == -1:
+    if path[0] == -1:
         msgbox.showerror("Error", "No Paths Found")
 
     else:
@@ -239,8 +240,8 @@ def astaralgo(self):
 
         self.controller.routelong = []
         self.controller.routelat = []
-        for i in range(len(self.controller.route)):
-            idx = binSearchAlgo(self, hdbarr, str(self.controller.route[i]), 0)
+        for i in range(len(path)):
+            idx = binSearchAlgo(self, hdbarr, str(path[i]), 0)
             if idx is not None:
                 self.controller.routelong.append(hdbarr[idx][1])
                 self.controller.routelat.append(hdbarr[idx][2])
@@ -403,6 +404,7 @@ if __name__ == "__main__":
     flt = Process(target=flask_main)
     flt.daemon = True
     flt.start()
+    mgr = Manager()
     tk_main()
 
 

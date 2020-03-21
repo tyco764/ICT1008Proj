@@ -15,13 +15,13 @@ def backtrack(graph, curNode, path, closedlist):
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 
 
-def AStar(graph, start, end):
+def AStar(graph, start, end, path):
 	if not graph.has_node(start) or not graph.has_node(end):
 		print("Invalid entries")
 		return -1
 	openlist = [start]
 	closedlist = []
-	path = []
+	#path = []
 	runcounter = 0
 	tim = time.time()
 	print("0")
@@ -58,11 +58,12 @@ def AStar(graph, start, end):
 				#collective dist, need times walking time
 				#average walking speed is ~5kmh (4.988...kmh) / ~1.3889m/s
 				print("Path found!\nCollective dist: ", graph.nodes[end]['gVal'])
-				return path
+				return
 
 		closedlist.append(curNode)
 		print(path)
 	runcounter += 1
 	if runcounter % 10000 == 0: print(time.time() - tim, path)
 	print("no path found")
-	return -1
+	path[0] == -1
+	return
