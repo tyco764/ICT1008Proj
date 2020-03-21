@@ -185,7 +185,10 @@ def callalgo(self):
     busdf = self.controller.busedgesdf.copy(deep=True)
     busarr = busdf.to_numpy()
 
-    algo = Process(target=bus.BusAlgo, args=(busfile, busarr, start_point, end_point))
+    ns = mgr.Namespace()
+    ns.busedgesdf = self.controller.busedgesdf
+
+    algo = Process(target=bus.BusAlgo, args=(busfile, ns, start_point, end_point))
     algo.start()
 
 
@@ -257,7 +260,7 @@ def busalgo(self):
     currentime = time.time()
 
     start_point = 'Blk 303D (65221)'
-    end_point = 'Blk 315B (65449)'
+    end_point = 'Cove Stn Exit A (65159)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
     busdf = self.controller.busedgesdf.copy(deep=True)
     busarr = busdf.to_numpy()
@@ -266,6 +269,11 @@ def busalgo(self):
     algo.start()
     algo.kill()
 
+    #print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
+    #least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
+    #for i in range(len(least_stops_print)):
+        #print(least_stops_print[i])
+    #print("End of Paths")
 
     '''
     start_point = 'Blk 303D (65221)'
@@ -284,6 +292,7 @@ def busalgo(self):
         self.loadinglabel.config(text="Choose your Algorithm:")
         print(time.time() - currentime)
     '''
+
     #self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
     #self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
 
@@ -406,5 +415,3 @@ if __name__ == "__main__":
     flt.start()
     mgr = Manager()
     tk_main()
-
-

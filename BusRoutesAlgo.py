@@ -3,7 +3,8 @@ import time
 import main
 import csv
 import collections
-
+import copy
+import numpy as np
 
 
 # This algorthm is still WIP. This algorihm is only considering direct buses as of now.
@@ -16,7 +17,8 @@ import collections
 
 def getdist(ns, bus, startstop, endstop):
     busdf = ns.busedgesdf.copy(deep=True)
-    busarr = busdf.to_numpy()
+    searchdf = busdf.loc[busdf['bus number'] == bus]
+    busarr = searchdf.to_numpy()
     idx = main.binSearchAlgo(ns, busarr, bus, 0)
     while busarr[idx][0] == bus:
         idx -= 1
@@ -26,56 +28,65 @@ def getdist(ns, bus, startstop, endstop):
     distance = 0
     starttemp = busarr[idx][1]
 
-    while starttemp != startstop:
-        if busarr[idx][0] == bus:
+
+    while busarr[idx][0] == bus:
+        if starttemp != startstop:
             idx += 1
+            if idx == len(busarr):
+                return 300  # hardcoded return 300 if not found(constant for lrt transfers or between lrts)
             starttemp = busarr[idx][1]
         else:
-            return -1
+            break
 
     endtemp = busarr[idx][4]
 
-    while endtemp != endstop:
-        if busarr[idx][0] == bus:
+    while busarr[idx][0] == bus:
+        if endtemp != endstop:
             distance += busarr[idx][7]
             idx += 1
+            if idx == len(busarr):
+                return 300  # hardcoded return 300 if not found(constant for lrt transfers or between lrts)
             endtemp = busarr[idx][4]
         else:
-            return -1
+            break
+
+
+    if distance == 0:
+        return 300 #hardcoded return 300 if not found(constant for lrt transfers or between lrts)
 
     distance += busarr[idx][7]
     return distance
 
 
-def BusAlgo(busfile, busarr, start_point, end_point):
-    #print(ns.hdbdf.head(5))
-    currentime = time.time()
+def BusAlgo(busfile, ns, start_point, end_point):
+    new = []
+    start = []
+    end = []
+    start_stops = []
+    end_stops = []
+    line = 0
+    transfer = 0
+    least_stops = 32
+    least_stops_print = ''
+    buses = []
+    print(getdist(ns, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281)'))
+
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
-
-        new = []
-        start = []
-        end = []
-        start_stops = []
-        end_stops = []
-        line = 0
-        transfer = 0
-        least_stops = 32
-        least_stops_print = ''
-        buses = []
-
         for i in csvdata:
-            buses.append(i[0])
-            temp = []
-            for j in i:
-                if (j != ''):
-                    temp.append(j)
-            new.append(temp)
+                if(i):
+
+                    buses.append(i[0])
+                temp = []
+                for j in i:
+                    if(j != ''):
+                        temp.append(j)
+                new.append(temp)
 
 
         for row in new:
             # print(row)
-            if start_point in row and end_point in row:  # direct bus found ****
+            if start_point in row and end_point in row:     #direct bus found ****
                 least_stops_temp = row.index(end_point) - row.index(start_point)
                 if least_stops_temp > 0:
                     if least_stops_temp < least_stops:
@@ -89,15 +100,16 @@ def BusAlgo(busfile, busarr, start_point, end_point):
                 end.append(line)
             line += 1
 
-        if (least_stops != 32):
-            return least_stops_print
-        else:
+        # if (least_stops != 32):
+        #     return least_stops_print
+        # else:
+        if(1 == 1):
             csv_file.seek(0)
 
             for i in start:
                 for j in range(i):
-                    next(csvdata)  # skip not matched buses
-                start_stops.append(next(csvdata))  # reached bus service
+                    next(csvdata) #skip not matched buses
+                start_stops.append(next(csvdata)) #reached bus service
                 csv_file.seek(0)
 
             csv_file.seek(0)
@@ -109,73 +121,93 @@ def BusAlgo(busfile, busarr, start_point, end_point):
                 csv_file.seek(0)
 
 
-            print(start)
             answer = []
             mystart = collections.deque([])
             for i in start:
+                newBus = {}
                 row = new[i]
-                mystart.append([row[0]] + row[row.index(start_point):row.index(start_point) + 2])
-            print(mystart)
+                newBus[row[0]] = row[row.index(start_point):row.index(start_point)+1]
+                mystart.append(newBus)
 
-            while (mystart and len(mystart[0]) < 36):
+            temparray = []
+            while(mystart and len(mystart[0]) < 6):
 
-                mydelay = 0
-                transferCount = 0
-                stopCounter = 0
                 current = mystart.popleft()
-                #print("Current", current)
-                if (current[-1] == end_point):
-                    if (current[0] != ''):
-                        answer.append(current)
-                        currentBus = current[0]
-                        mystr = currentBus
-                        mystr += "-> "
-                        for i in current[1:]:
+                backup = copy.deepcopy(current)
+                backup2 = copy.deepcopy(current)
+                backup3 = copy.deepcopy(current)
 
-                            if (mydelay == 1):
-                                mydelay = 0
-                                continue
-                            elif (len(i) > 4):
-                                stopCounter += 1
-                                mystr += " "
-                                mystr += i
-                            else:
-                                if currentBus == i:
-                                    mydelay = 1
-                                    continue
-                                else:
-                                    transferCount += 1
-                                    currentBus = i
-                                    mystr += " "
-                                    mystr += i
-                                    mystr += "-> "
-                        print("Transfers:" + str(transferCount))
-                        print("Stops:" + str(stopCounter))
-                        transferCount = 0
-                        stopCounter = 0
+                #check for answer
+                lastBus = list(current.keys())[-1]
+                currentBus = 0;
+                if(len(current[lastBus]) == 1):
+                    starting = current[lastBus][-1]
+                    for possibleRoute in new:
+                        if possibleRoute[0] == lastBus:
+                            currentBus = possibleRoute
+                            break
 
-                        print(mystr)
+                    if end_point in currentBus and currentBus.index(end_point) >= currentBus.index(starting):
+                        current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(end_point)+1])
+
+                        keyCount = len(current.keys()) - 1
+                        #print( "Transfers: " + str(keyCount))
+                        mycount = 0
+                        for count in current.keys():
+                            mycount += len(current[count])
+                        #print("Bus Stops: " + str(mycount - keyCount - 1))
+                        for i in current.keys():
+                            for j,stops in enumerate(current[i][:-1]):
+                                pass
+                                #print(getdist(self, '136','Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281)'))
+
+
+                        answer.append([mycount - keyCount - 1,current, len(current.keys()) - 1])
+                        #print(current)
+
+
+                #appending part
+                for possibleRoute in new:
+                    if possibleRoute[0] == lastBus:
+                        currentBus = possibleRoute
+                        break;
+                #print(backup)
+                #print(currentBus)
+                if currentBus.index(backup[lastBus][-1]) + 1 < len(currentBus):
+
+                    start = currentBus.index(backup[lastBus][-1])
+                    end = currentBus.index(backup[lastBus][-1])
+                    backup[lastBus].append(currentBus[start+1])
+
+
+                    mystart.append(backup)
+
 
                 for possibleRoute in new:
-                    if (current[-1] in possibleRoute):
-                        if possibleRoute.index(current[-1]) + 1 < len(possibleRoute):
-                            mystart.append(current + [possibleRoute[0]] + possibleRoute[possibleRoute.index(
-                                current[-1]):possibleRoute.index(current[-1]) + 2])
 
-            print(time.time() - currentime)
+                    if len([i for i in backup2.keys() if i in possibleRoute]) == 0  and backup2[lastBus][-1] in possibleRoute and len(backup2[lastBus]) > 1 and backup2[lastBus][-1] != end_point:
+
+                        temp = backup2[lastBus][-1]
+                        backup2[possibleRoute[0]] = [temp]
+
+                        mystart.append(backup2)
+                        #print(backup2)
+                        backup2 = copy.deepcopy(backup3)
+
+        return answer
 
                         # print(new)
         # print(start_stops)
         # for i, startBus in enumerate(start_stops):
         #     for startStop in startBus[startBus.index(start_point):]:
         #         for j, endBus in enumerate(end_stops):
-        #             for endStop in endBus[1:endBus.index(end_point)+1]:  
+        #             for endStop in endBus[1:endBus.index(end_point)+1]:
         #                 if(startStop != '' and endStop != '' and endStop == startStop):
-        #                     least_stops_print += (str(start_point) + " -> Bus " + str(start_stops[i][0]) + " (" + str(startBus[startBus.index(start_point):].index(startStop)) + " stops) -> " + str(endStop) + " -> Bus " + str(end_stops[j][0]) + " (" + str(endBus.index(end_point) - endBus.index(endStop)) + " stops) -> " + str(end_point) + '\n') 
+        #                     least_stops_print += (str(start_point) + " -> Bus " + str(start_stops[i][0]) + " (" + str(startBus[startBus.index(start_point):].index(startStop)) + " stops) -> " + str(endStop) + " -> Bus " + str(end_stops[j][0]) + " (" + str(endBus.index(end_point) - endBus.index(endStop)) + " stops) -> " + str(end_point) + '\n')
         #                     transfer = 1
 
         # if transfer == 0:
-        #     return "There are no bus routes with 1 transfer." 
+        #     return "There are no bus routes with 1 transfer."
         # else:
         #     least_stops_print = "Bus routes with " + str(transfer) + " transfer(s):" + '\n' + least_stops_print
         #     return least_stops_print
