@@ -232,6 +232,7 @@ def busalgo(self):
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
         least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
+        print(least_stops_print)
 
     #self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
     #self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
