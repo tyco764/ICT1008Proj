@@ -157,13 +157,18 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                     for count in current.keys():
                         mycount += len(current[count])
                     #print("Bus Stops: " + str(mycount - keyCount - 1))
+                    totalDistance = 0
+                    time = 0
                     for i in current.keys():
                         for j,stops in enumerate(current[i][:-1]): 
-                            pass
-                            #print(getdist(self, '136','Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281)'))
+                            
+                            speed = float(new[buses.index(i)][1])
+                            dist = getdist(self, lastBus, current[i][j], current[i][j+1])
+                            totalDistance += dist
+                            time += (dist/1000)/speed*60
 
 
-                    answer.append([mycount - keyCount - 1,current, len(current.keys()) - 1])
+                    answer.append([mycount - keyCount - 1,current, len(current.keys()) - 1, totalDistance, time])
                     #print(current)
 
 
