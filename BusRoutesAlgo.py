@@ -16,17 +16,13 @@ import numpy as np
 def getdist(self, bus, startstop, endstop):
     np.set_printoptions(linewidth=1000)
     busdf = self.controller.busedgesdf.copy(deep=True)
-    searchdf = busdf.loc[busdf['bus number'] == bus]
-
+    searchdf = busdf[busdf['bus number'] == bus]
     busarr = searchdf.to_numpy()
+
+    if len(busarr) == 0:
+        return -1        #means there is an error with getdist
+
     idx = 0
-    #busarr = busarr[np.argsort(busarr[:, 0])]
-    #idx = main.binSearchAlgo(self, busarr, bus, 0)
-
-    #while busarr[idx][0] == bus and idx > -1:
-        #idx -= 1
-    #idx += 1
-
     # 1 and 4
     distance = 0
     starttemp = busarr[idx][1]

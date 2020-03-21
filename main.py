@@ -145,10 +145,10 @@ class AlgoPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        but = tk.Button(self, text="Best Route", command=lambda: astaralgo(self))
+        but = tk.Button(self, text="Best Route", command=lambda: callalgo(self))
         but.place(x=200, y=190, width=100, height=50)
 
-        but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self))
+        but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self, 0, 0))
         but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Search Again",
@@ -161,61 +161,79 @@ class AlgoPage(tk.Frame):
         returnbtn.pack()
         returnbtn.place(x=310, y=290, width=100, height=50, )
 
+def callalgo(self):
 
-def astaralgo(self):
-    G = nx.Graph()
-
-    starttime = time.time()
-    edgesarr = self.controller.edgesdf.to_numpy()
-
-    for i in range(len(edgesarr)):
-        for name in self.controller.hdbdf['name']:
-            #if edgesarr[i][0] == name or edgesarr[i][3] == name:
-            G.add_edge(edgesarr[i][0], edgesarr[i][3], weight= edgesarr[i][6])
-    print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
-
-    hdbarr = self.controller.hdbdf.to_numpy()
-    for i in range(5):
-        print(hdbarr[i])
-    for i in range(len(hdbarr)):
-        value = getdistance(hdbarr[i][2], hdbarr[i][1], self.controller.enddest[1], self.controller.enddest[2])
-        G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
-    endtime = time.time() - starttime
-    print("Graph Added.")
-    print(G.nodes(data=True))
-    print("Time Taken to add nodes is", endtime)
-
-    starttime = time.time()
-
-    startNode = self.controller.startdest[0]
-    endNode = []
-    #print(startNode)
-    #endNode = self.controller.enddest[0]
     busnodes = self.controller.busnodesdf.values.tolist()
+    startwalkingroute, endwalkingroute = [], []
+    midbusstop = []
 
+    #getting close bus stops for start dest
 
     for i in range(len(busnodes)):
-        try:
-            test = getdistance(self.controller.startdest[1], self.controller.startdest[2],
-                        busnodes[i][2], busnodes[i][1])
-        except ValueError:
-            print(i)
+        test = getdistance(self.controller.startdest[1], self.controller.startdest[2],
+                           busnodes[i][2], busnodes[i][1])
         busnodes[i].append(test)
 
     busnodes = sorted(busnodes, key=lambda x: x[4])
-    for i in range(5):
-        print(busnodes[i])
 
     for i in range(3):
-        endNode.append(busnodes[i][0])
-    print("EndNode: ", endNode[0])
-    #get walking route
-    walkingroute = []
-    path = rawLogic.AStar(G, startNode, endNode[0])
-    walkingroute.append(path)
-    print("walking route", walkingroute[0])
-    self.controller.route = walkingroute[0]
+        midbusstop.append(busnodes[i])
 
+    print("EndNode: ", midbusstop[0], midbusstop[1], midbusstop[2])
+
+    # get walking route
+    for i in list(midbusstop):
+        path, walkingdist = astaralgo(self, self.controller.startdest, i)
+        if path == -1:
+            midbusstop.remove(i)
+        else:
+            startwalkingroute.append([path, walkingdist])
+
+    for i in range(len(startwalkingroute)):
+        print("start walking route", startwalkingroute[i])
+
+    #getting close bus stops for end dest
+    busnodes = self.controller.busnodesdf.values.tolist()
+    endbusstop = []
+    for i in range(len(busnodes)):
+        test = getdistance(self.controller.enddest[1], self.controller.enddest[2],
+                           busnodes[i][2], busnodes[i][1])
+        busnodes[i].append(test)
+
+    busnodes = sorted(busnodes, key=lambda x: x[4])
+    for i in range(3):
+        endbusstop.append(busnodes[i])
+
+    print("EndNode: ", endbusstop[0], endbusstop[1], endbusstop[2])
+
+    # get walking route
+    for i in list(endbusstop):
+        path, walkingdist = astaralgo(self, self.controller.enddest, i)
+        if path == -1:
+            endbusstop.remove(i)
+        else:
+            path.reverse()
+            endwalkingroute.append([path, walkingdist])
+
+    for i in range(len(endwalkingroute)):
+        print("walking route", endwalkingroute[i])
+
+    buspaths = []
+    for i in range(len(startwalkingroute)):
+        for j in range(len(endwalkingroute)):
+            startpath = startwalkingroute[i][0]
+            endpath = endwalkingroute[j][0]
+            print(startpath[-1], endpath[0])
+            buspaths = busalgo(self, startpath[-1], endpath[0])
+            break
+    sorted(buspaths, key=lambda x: x[-1])
+    print(buspaths[0])
+    drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
+
+
+def drawmap(self, path):
+    starttime = time.time()
+    self.controller.route = path
 
     if self.controller.route == -1:
         msgbox.showerror("Error", "No Paths Found")
@@ -243,27 +261,54 @@ def astaralgo(self):
         print("Time Taken is", endtime)
 
 
+def astaralgo(self, startNode, endNode):
+    G = nx.Graph()
+
+    starttime = time.time()
+    edgesarr = self.controller.edgesdf.to_numpy()
+
+    for i in range(len(edgesarr)):
+        for name in self.controller.hdbdf['name']:
+            #if edgesarr[i][0] == name or edgesarr[i][3] == name:
+            G.add_edge(edgesarr[i][0], edgesarr[i][3], weight= edgesarr[i][6])
+    print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
+
+    hdbarr = self.controller.hdbdf.to_numpy()
+    for i in range(5):
+        print(hdbarr[i])
+    for i in range(len(hdbarr)):
+        value = getdistance(hdbarr[i][2], hdbarr[i][1], endNode[2], endNode[1])
+        G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
+    endtime = time.time() - starttime
+    print("Graph Added.")
+    print(G.nodes(data=True))
+    print("Time Taken to add nodes is", endtime)
+
+    starttime = time.time()
+    #print(startNode)
+    #endNode = self.controller.enddest[0]
+    path,walkingdist = rawLogic.AStar(G, startNode[0], endNode[0])
+    return path, walkingdist
+
+
 def busalgo(self, start_point, end_point):
+    busnum = '3 Reverse'
     start_point = 'Blk 303D (65221)'
-    end_point = 'Cove Stn Exit A (65159)'
+    end_point = 'Blk 298 (65229)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
 
+    test = bus.getdist(self, busnum, start_point, end_point)
+    print(test)
+    '''
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
         #print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
         least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
-        for i in range(len(least_stops_print)):
-            print(least_stops_print[i])
+        #for i in range(len(least_stops_print)):
+            #print(least_stops_print[i])
         print("End of Paths")
-
-    #self.controller.routelat = [1.40523, 1.4037392, 1.4031741, 1.4026126, 1.4030339,1.4051606, 1.40526]
-    #self.controller.routelong = [103.90235, 103.9041668,103.9049597, 103.9056626, 103.9068768,103.907831, 103.90858]
-
-    #dist = getdistance(self, self.controller.routelat[0], self.controller.routelong[0],
-    #                   self.controller.routelat[1], self.controller.routelong[1])
-    #print("Distance between Hougang Mall and SIT@NYP is: ", dist)
-
-    #displaymap(self)
+        return least_stops_print
+    '''
 
 
 # @app.route('/')
