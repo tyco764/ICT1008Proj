@@ -2,6 +2,7 @@ import main
 import csv
 import collections
 import copy
+import numpy as np
 
 
 # This algorthm is still WIP. This algorihm is only considering direct buses as of now.
@@ -13,33 +14,48 @@ import copy
 
 
 def getdist(self, bus, startstop, endstop):
+    np.set_printoptions(linewidth=1000)
     busdf = self.controller.busedgesdf.copy(deep=True)
-    busarr = busdf.to_numpy()
-    idx = main.binSearchAlgo(self, busarr, bus, 0)
-    while busarr[idx][0] == bus:
-        idx -= 1
-    idx += 1
+    searchdf = busdf.loc[busdf['bus number'] == bus]
+
+    busarr = searchdf.to_numpy()
+    idx = 0
+    #busarr = busarr[np.argsort(busarr[:, 0])]
+    #idx = main.binSearchAlgo(self, busarr, bus, 0)
+
+    #while busarr[idx][0] == bus and idx > -1:
+        #idx -= 1
+    #idx += 1
 
     # 1 and 4
     distance = 0
     starttemp = busarr[idx][1]
 
-    while starttemp != startstop:
-        if busarr[idx][0] == bus:
+
+    while busarr[idx][0] == bus:
+        if starttemp != startstop:
             idx += 1
+            if idx == len(busarr):
+                return 300  # hardcoded return 300 if not found(constant for lrt transfers or between lrts)
             starttemp = busarr[idx][1]
         else:
-            return 300 #hardcoded return 300 if not found(constant for lrt transfers or between lrts)
+            break
 
     endtemp = busarr[idx][4]
 
-    while endtemp != endstop:
-        if busarr[idx][0] == bus:
+    while busarr[idx][0] == bus:
+        if endtemp != endstop:
             distance += busarr[idx][7]
             idx += 1
+            if idx == len(busarr):
+                return 300  # hardcoded return 300 if not found(constant for lrt transfers or between lrts)
             endtemp = busarr[idx][4]
         else:
-            return 300 #hardcoded return 300 if not found(constant for lrt transfers or between lrts)
+            break
+
+
+    if distance == 0:
+        return 300 #hardcoded return 300 if not found(constant for lrt transfers or between lrts)
 
     distance += busarr[idx][7]
     return distance
@@ -130,7 +146,7 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                 for possibleRoute in new:
                     if possibleRoute[0] == lastBus:
                         currentBus = possibleRoute
-                        break;
+                        break
 
                 if end_point in currentBus and currentBus.index(end_point) >= currentBus.index(starting):
                     current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(end_point)+1])
