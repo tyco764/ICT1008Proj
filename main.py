@@ -145,7 +145,13 @@ class AlgoPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        but = tk.Button(self, text="Best Route", command=lambda: callalgo(self))
+        options = ["Least Transfer", "Shortest Time", "Least Walking"]
+        option = tk.StringVar()
+        option.set(options[1])
+        optionmenu = tk.OptionMenu(self, option, *options)
+        optionmenu.place(x=100, y= 100, width=120, height=50)
+
+        but = tk.Button(self, text="Best Route", command=lambda: callalgo(self, option.get()))
         but.place(x=200, y=190, width=100, height=50)
 
         but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self, 0, 0))
@@ -161,7 +167,7 @@ class AlgoPage(tk.Frame):
         returnbtn.pack()
         returnbtn.place(x=310, y=290, width=100, height=50, )
 
-def callalgo(self):
+def callalgo(self, option):
 
     busnodes = self.controller.busnodesdf.values.tolist()
     startwalkingroute, endwalkingroute = [], []
@@ -218,17 +224,60 @@ def callalgo(self):
     for i in range(len(endwalkingroute)):
         print("walking route", endwalkingroute[i])
 
-    buspaths = []
+    buspaths = [[None for x in range(3)] for y in range(3)]
+
+    #"Least Transfer", "Shortest Time", "Least Walking"
+    if option == 'Least Transfer':
+        optionvalue = -3
+    elif option == 'Shortest Time':
+        optionvalue = -1
+    elif option == 'Least Walking':
+        optionvalue = -1
+
+    minwalkdist = [[None for x in range(3)] for y in range(3)]
     for i in range(len(startwalkingroute)):
         for j in range(len(endwalkingroute)):
             startpath = startwalkingroute[i][0]
             endpath = endwalkingroute[j][0]
-            print(startpath[-1], endpath[0])
-            buspaths = busalgo(self, startpath[-1], endpath[0])
-            break
-    sorted(buspaths, key=lambda x: x[-1])
-    print(buspaths[0])
-    drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
+            minwalkdist[i][j] = startwalkingroute[i][1] + endwalkingroute[j][1]
+            print(minwalkdist[i][j])
+            print(startpath[-1], endpath[0], minwalkdist[i][j])
+            res = busalgo(self, startpath[-1], endpath[0])
+            res.sort(key=lambda x: x[optionvalue])
+            buspaths[i][j] = res[0]
+    #buspaths[0][0] = buspaths[0][2]
+
+    print(len(buspaths))
+    #print(buspaths[0])
+    startidx , endidx = 0, 0
+    tempmin, mindist = 1000000, 0
+    startlen, endlen = len(buspaths), len(buspaths[i])
+
+    for i in range(startlen):
+        for j in range(endlen):
+            if option == 'Least Walking':
+                mindist = minwalkdist[i][j]
+                if mindist is not None:
+                    if mindist < tempmin:
+                        startidx = i
+                        endidx = j
+                        tempmin = mindist
+            else:
+                path = buspaths[i][j]
+                if path is not None:
+                    if path[optionvalue] < tempmin:
+                        startidx = i
+                        endidx = j
+                        tempmin = path[optionvalue]
+
+            if buspaths[i][j] is not None:
+                print(startwalkingroute[i], buspaths[i][j], endwalkingroute[j])
+    print(startidx, endidx)
+    #buspaths[0].sort(key = lambda x: x[-1])
+
+    print(startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
+
+    #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
 
 
 def drawmap(self, path):
@@ -295,8 +344,8 @@ def busalgo(self, start_point, end_point):
     #busnum = '3 Reverse'
     #test = bus.getdist(self, busnum, start_point, end_point)
 
-    start_point = 'Opp Blk 103A (65071)'
-    end_point = 'Punggol Temp Int (65009)'
+    #start_point = 'Opp Blk 103A (65071)'
+    #end_point = 'Punggol Temp Int (65009)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
     busnodesarr = self.controller.busnodesdf.to_numpy()
     #busnodesarr is the array with the opposite bus stops in busnodesarr[3]
@@ -306,10 +355,10 @@ def busalgo(self, start_point, end_point):
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
         #print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
-        least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
+        least_stops_print = bus.BusAlgo(self, busnodesarr, csv_file, csvdata, start_point, end_point)
         #print(least_stops_print)
-        for i in range(len(least_stops_print)):
-            print(least_stops_print[i])
+        #for i in range(len(least_stops_print)):
+            #print(least_stops_print[i])
         print("End of Paths")
         return least_stops_print
 

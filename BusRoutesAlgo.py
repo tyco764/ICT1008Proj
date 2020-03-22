@@ -59,7 +59,7 @@ def getdist(self, bus, startstop, endstop):
 
 
 
-def BusAlgo(self, csv_file, csvdata, start_point, end_point):
+def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
     thisBus = []
     oppBus = []
     with open('csv/busnodes.csv', mode = 'r') as csv_file2:
@@ -164,7 +164,7 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                 
                 if ((end_point in currentBus and currentBus.index(end_point) >= currentBus.index(starting)) or end_point in myOppBus):
 
-                   
+
 
                     if(end_point in myOppBus): #walking code adding to dict
                         tempLastBus = thisBus[oppBus.index(end_point)]
@@ -192,6 +192,12 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                                 dist = getdist(self, lastBus, current[i][j], current[i][j+1])
                                 totalDistance += dist
                                 time += (dist/1000)/speed*60
+                            else:
+                                start = main.binSearchAlgo(self, busarr, current[i][j], 0)
+                                end = main.binSearchAlgo(self, busarr, end_point, 0)
+                                dist = main.getdistance(busarr[start][2], busarr[start][1], busarr[end][2], busarr[end][1])
+                                totalDistance += dist
+                                time += (dist / 1000) / 4 * 60
 
 
                     answer.append([mycount - keyCount - 1,current, len(current.keys()) - 1, totalDistance, time])

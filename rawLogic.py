@@ -52,7 +52,11 @@ def AStar(graph, start, end):
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 		for x in openlist:
 			graph.nodes[x]['gVal'] = graph.nodes[curNode]['gVal'] + graph.edges[curNode, x]['weight']
-			graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
+			try:
+				graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
+			except KeyError:
+				print(x)
+				return
 			if x == end:
 				path.append(x)
 				#collective dist, need times walking time
