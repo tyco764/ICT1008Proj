@@ -17,6 +17,7 @@ def getdist(self, bus, startstop, endstop):
     np.set_printoptions(linewidth=1000)
     busdf = self.controller.busedgesdf.copy(deep=True)
     searchdf = busdf[busdf['bus number'] == bus]
+    print(searchdf.head(5))
     busarr = searchdf.to_numpy()
 
     if len(busarr) == 0:

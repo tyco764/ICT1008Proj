@@ -292,14 +292,14 @@ def astaralgo(self, startNode, endNode):
 
 
 def busalgo(self, start_point, end_point):
-    busnum = '3 Reverse'
-    start_point = 'Blk 303D (65221)'
-    end_point = 'Blk 298 (65229)'
+    #busnum = '3 Reverse'
+    #start_point = 'Opp Blk 103A (65071)'
+    #end_point = 'Punggol Temp Int (65009)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
 
-    test = bus.getdist(self, busnum, start_point, end_point)
-    print(test)
-    '''
+    #test = bus.getdist(self, busnum, start_point, end_point)
+
+
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
         #print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
@@ -308,7 +308,7 @@ def busalgo(self, start_point, end_point):
             #print(least_stops_print[i])
         print("End of Paths")
         return least_stops_print
-    '''
+
 
 
 # @app.route('/')
