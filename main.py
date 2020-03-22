@@ -307,8 +307,9 @@ def busalgo(self, start_point, end_point):
         csvdata = csv.reader(csv_file, delimiter=',')
         #print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
         least_stops_print = bus.BusAlgo(self, csv_file, csvdata, start_point, end_point)
-        #for i in range(len(least_stops_print)):
-            #print(least_stops_print[i])
+        #print(least_stops_print)
+        for i in range(len(least_stops_print)):
+            print(least_stops_print[i])
         print("End of Paths")
         return least_stops_print
 

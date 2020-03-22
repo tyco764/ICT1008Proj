@@ -60,6 +60,18 @@ def getdist(self, bus, startstop, endstop):
 
 
 def BusAlgo(self, csv_file, csvdata, start_point, end_point):
+    thisBus = []
+    oppBus = []
+    with open('csv/busnodes.csv', mode = 'r') as csv_file2:
+        
+        reader = csv.DictReader(csv_file2)
+        print(reader)
+        for row in reader:
+            thisBus.append(row['fromNode'])
+            oppBus.append(row['OppBusStop'])
+
+
+
     new = []
     start = []
     end = []
@@ -144,9 +156,26 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                     if possibleRoute[0] == lastBus:
                         currentBus = possibleRoute
                         break
+                myOppBus = []
+                for i in currentBus[currentBus.index(starting):]:
+                    if(i in thisBus):
+                        if(oppBus[thisBus.index(i)] != '0'):
+                            myOppBus.append(oppBus[thisBus.index(i)])
+                
+                if ((end_point in currentBus and currentBus.index(end_point) >= currentBus.index(starting)) or end_point in myOppBus):
 
-                if end_point in currentBus and currentBus.index(end_point) >= currentBus.index(starting):
-                    current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(end_point)+1])
+                   
+
+                    if(end_point in myOppBus): #walking code adding to dict
+                        tempLastBus = thisBus[oppBus.index(end_point)]
+                        current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(tempLastBus)+1])
+                        current["walk"] = [current[lastBus][-1], end_point];
+                        
+                       
+                    else:
+                        
+                        current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(end_point)+1])
+
                     
                     keyCount = len(current.keys()) - 1 
                     #print( "Transfers: " + str(keyCount))
@@ -158,11 +187,11 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                     time = 0
                     for i in current.keys():
                         for j,stops in enumerate(current[i][:-1]): 
-                            
-                            speed = float(new[buses.index(i)][1])
-                            dist = getdist(self, lastBus, current[i][j], current[i][j+1])
-                            totalDistance += dist
-                            time += (dist/1000)/speed*60
+                            if(i != 'walk'):
+                                speed = float(new[buses.index(i)][1])
+                                dist = getdist(self, lastBus, current[i][j], current[i][j+1])
+                                totalDistance += dist
+                                time += (dist/1000)/speed*60
 
 
                     answer.append([mycount - keyCount - 1,current, len(current.keys()) - 1, totalDistance, time])
@@ -198,7 +227,6 @@ def BusAlgo(self, csv_file, csvdata, start_point, end_point):
                     backup2 = copy.deepcopy(backup3)
                                     
     return answer
-
                         # print(new)
         # print(start_stops)
         # for i, startBus in enumerate(start_stops):
