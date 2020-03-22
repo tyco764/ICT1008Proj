@@ -293,11 +293,14 @@ def astaralgo(self, startNode, endNode):
 
 def busalgo(self, start_point, end_point):
     #busnum = '3 Reverse'
-    #start_point = 'Opp Blk 103A (65071)'
-    #end_point = 'Punggol Temp Int (65009)'
-    busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
-
     #test = bus.getdist(self, busnum, start_point, end_point)
+
+    start_point = 'Opp Blk 103A (65071)'
+    end_point = 'Punggol Temp Int (65009)'
+    busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
+    busnodesarr = self.controller.busnodesdf.to_numpy()
+    #busnodesarr is the array with the opposite bus stops in busnodesarr[3]
+
 
 
     with open(busfile, mode='r') as csv_file:
