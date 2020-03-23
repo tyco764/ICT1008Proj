@@ -274,40 +274,12 @@ def callalgo(self, option):
                 print(startwalkingroute[i], buspaths[i][j], endwalkingroute[j])
     print(startidx, endidx)
     #buspaths[0].sort(key = lambda x: x[-1])
-
+    #startidx, endidx = 1,1
     print(startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
-
+    errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
+    if errorcheck == -1:
+        msgbox.showerror("Error", "Drawing Map Failed")
     #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
-
-
-def drawmap(self, path):
-    starttime = time.time()
-    self.controller.route = path
-
-    if self.controller.route == -1:
-        msgbox.showerror("Error", "No Paths Found")
-
-    else:
-        #printing out the path -- Walking (WIP)
-        #hdbarr = self.controller.hdbdf.to_numpy()
-        searchdf = self.controller.hdbdf.copy(deep=True)
-        searchdf["name"] = searchdf["name"].apply(str)
-        hdbarr = searchdf.to_numpy()
-        hdbarr = hdbarr[np.argsort(hdbarr[:,0])]
-
-        self.controller.routelong = []
-        self.controller.routelat = []
-        for i in range(len(self.controller.route)):
-            idx = binSearchAlgo(self, hdbarr, str(self.controller.route[i]), 0)
-            if idx is not None:
-                self.controller.routelong.append(hdbarr[idx][1])
-                self.controller.routelat.append(hdbarr[idx][2])
-
-        #print(self.controller.routelong)
-        displaymap(self)
-
-        endtime = time.time() - starttime
-        print("Time Taken is", endtime)
 
 
 def astaralgo(self, startNode, endNode):
@@ -364,24 +336,102 @@ def busalgo(self, start_point, end_point):
 
 
 
-# @app.route('/')
-def displaymap(self):
-    # takes in an array of latitude and longitude and draws them onto openstreetmap
-    long = self.controller.routelong.copy()
-    lat = self.controller.routelat.copy()
+def drawmap(self, path):
+    searchdf = self.controller.hdbdf.copy(deep=True)
+    searchdf["name"] = searchdf["name"].apply(str)
+    hdbarr = searchdf.to_numpy()
+    hdbarr = hdbarr[np.argsort(hdbarr[:, 0])]
 
+    long = []
+    lat = []
+    for i in range(len(path)):
+        idx = binSearchAlgo(self, hdbarr, str(path[i]), 0)
+        if idx is not None:
+            long.append(hdbarr[idx][1])
+            lat.append(hdbarr[idx][2])
+
+        # print(self.controller.routelong)
     route = list(zip(lat, long))
+    print(route)
+    return route
+
+# @app.route('/')
+def displaymap(self, start, middle, end):
+    # takes in an array of latitude and longitude and draws them onto openstreetmap
+    starttime = time.time()
+    #self.controller.route = start
+
+    # printing out the path -- Walking (WIP)
+    # hdbarr = self.controller.hdbdf.to_numpy()
+
+    route = [0 for x in range(3)]
+    route[0] = drawmap(self, start[0])
+    route[2] = drawmap(self, end[0])
+
+    # route[1] = drawmap(self, middle)
+    route[1], buspath = [], []
+    dist = 0
+    busdf = self.controller.busedgesdf.copy(deep=True)
+
+    pathdict = middle[1]
+    for key, values in pathdict.items():
+        if len(values) == 1:
+            continue
+        else:
+            searchdf = busdf[busdf['bus number'] == key]
+            busarr = searchdf.to_numpy()
+            idx = 0
+            starttemp = busarr[idx][1]
+            if len(busarr) == 0:
+                return -1
+            while busarr[idx][0] == key:
+                if starttemp != values[0]:
+                    idx += 1
+                    if idx == len(busarr):
+                        print("starttemp =", values[0])
+                        return -1
+                    starttemp = busarr[idx][1]
+
+                else:
+                    buspath.append((busarr[idx][3], busarr[idx][2]))
+                    break
+
+            endtemp = busarr[idx][4]
+            while busarr[idx][0] == key:
+                if endtemp != values[-1]:
+                    buspath.append((busarr[idx][6], busarr[idx][5]))
+                    idx += 1
+                    if idx == len(busarr):
+                        print("start, end = ", key, starttemp, values[-1])
+                        return -1
+                    endtemp = busarr[idx][4]
+                else:
+                    buspath.append((busarr[idx][6], busarr[idx][5]))
+                    break
+    print(buspath)
+    route[1] = buspath
 
     map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
-    for i in range(len(route)):
-        folium.Marker(route[i]).add_to(map)
+
+    for i in range(3):
+        for j in range(len(route[i])):
+            #if i%2 == 0 and j == len(route[i])-1:
+                #continue
+            if i%2 == 0:
+                folium.Marker(route[i][j]).add_to(map)
         # popup=names[]
-    folium.PolyLine(route).add_to(map)
+        if i%2 == 0:
+            folium.PolyLine(route[i], color="red").add_to(map)
+        else:
+            folium.PolyLine(route[i], color="blue").add_to(map)
+    endtime = time.time() - starttime
+    print("Time Taken is", endtime)
 
     map.save("static/map.html")
     #webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
     webbrowser.open("http://127.0.0.1:5000")
     self.controller.show_frame("StartPage")
+    return 0
 
 
 def binSearch(self, df, query, query2):
