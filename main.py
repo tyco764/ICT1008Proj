@@ -151,7 +151,7 @@ class AlgoPage(tk.Frame):
         optionmenu = tk.OptionMenu(self, option, *options)
         optionmenu.place(x=100, y= 100, width=120, height=50)
 
-        but = tk.Button(self, text="Best Route", command=lambda: callalgo(self, option.get()))
+        but = tk.Button(self, text="Best Route", command=lambda: threadalgo(self, option.get()))
         but.place(x=200, y=190, width=100, height=50)
 
         but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self, 0, 0))
@@ -167,8 +167,12 @@ class AlgoPage(tk.Frame):
         returnbtn.pack()
         returnbtn.place(x=310, y=290, width=100, height=50, )
 
-def callalgo(self, option):
+def threadalgo(self, option):
+    callthread = threading.Thread(target=callalgo, args=[self, option])
+    callthread.start()
 
+def callalgo(self, option):
+    starttime = time.time()
     busnodes = self.controller.busnodesdf.values.tolist()
     startwalkingroute, endwalkingroute = [], []
     midbusstop = []
@@ -280,6 +284,7 @@ def callalgo(self, option):
     if errorcheck == -1:
         msgbox.showerror("Error", "Drawing Map Failed")
     #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
+    print("Time taken is:", time.time() - starttime)
 
 
 def astaralgo(self, startNode, endNode):
@@ -430,7 +435,7 @@ def displaymap(self, start, middle, end):
     map.save("static/map.html")
     #webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
     webbrowser.open("http://127.0.0.1:5000")
-    self.controller.show_frame("StartPage")
+    self.controller.show_frame("SearchPage")
     return 0
 
 
