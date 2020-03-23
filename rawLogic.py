@@ -52,17 +52,21 @@ def AStar(graph, start, end):
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 		for x in openlist:
 			graph.nodes[x]['gVal'] = graph.nodes[curNode]['gVal'] + graph.edges[curNode, x]['weight']
-			graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
+			try:
+				graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
+			except KeyError:
+				print(x)
+				return
 			if x == end:
 				path.append(x)
 				#collective dist, need times walking time
 				#average walking speed is ~5kmh (4.988...kmh) / ~1.3889m/s
 				print("Path found!\nCollective dist: ", graph.nodes[end]['gVal'])
-				return path
+				return path, graph.nodes[end]['gVal']
 
 		closedlist.append(curNode)
 		print(path)
 	runcounter += 1
 	if runcounter % 10000 == 0: print(time.time() - tim, path)
 	print("no path found")
-	return -1
+	return -1,-1
