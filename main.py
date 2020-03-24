@@ -119,7 +119,7 @@ class SearchPage(tk.Frame):
         startlabel.place(x=90, y=98)
 
         startdest = tk.StringVar()
-        startdest.set("612B")
+        startdest.set("Cove LRT")
         self.start = tk.Entry(self, justify='left', text=startdest)
         self.start.focus()
         self.start.place(x=203, y=100, width=250, height=50)
@@ -154,7 +154,7 @@ class AlgoPage(tk.Frame):
         but = tk.Button(self, text="Best Route", command=lambda: threadalgo(self, option.get()))
         but.place(x=200, y=190, width=100, height=50)
 
-        but2 = tk.Button(self, text="Bus Route Test", command=lambda: busalgo(self, 0, 0))
+        but2 = tk.Button(self, text="Bus Route Test", command=lambda: astaralgo(self, 'Cove LRT', 'Cove LRT'))
         but2.place(x=310, y=190, width=100, height=50)
 
         button = tk.Button(self, text="Search Again",
@@ -188,19 +188,22 @@ def callalgo(self, option):
 
     for i in range(3):
         midbusstop.append(busnodes[i])
+        print(busnodes[i])
 
-    print("EndNode: ", midbusstop[0], midbusstop[1], midbusstop[2])
+    print("StartNode: ", midbusstop[0], midbusstop[1], midbusstop[2])
 
     # get walking route
     for i in list(midbusstop):
-        path, walkingdist = astaralgo(self, self.controller.startdest, i)
+        print("startdest , midbusstop ", self.controller.startdest, i)
+        if self.controller.startdest[0] == i[0]:
+            path = [i[0]]
+            walkingdist = 0
+        else:
+            path, walkingdist = astaralgo(self, self.controller.startdest, i)
         if path == -1:
             midbusstop.remove(i)
         else:
             startwalkingroute.append([path, walkingdist])
-
-    for i in range(len(startwalkingroute)):
-        print("start walking route", startwalkingroute[i])
 
     #getting close bus stops for end dest
     busnodes = self.controller.busnodesdf.values.tolist()
@@ -225,8 +228,11 @@ def callalgo(self, option):
             path.reverse()
             endwalkingroute.append([path, walkingdist])
 
+    for i in range(len(startwalkingroute)):
+        print("start walking route", startwalkingroute[i])
+
     for i in range(len(endwalkingroute)):
-        print("walking route", endwalkingroute[i])
+        print("end walking route", endwalkingroute[i])
 
     buspaths = [[None for x in range(3)] for y in range(3)]
 
@@ -280,9 +286,20 @@ def callalgo(self, option):
     #buspaths[0].sort(key = lambda x: x[-1])
     #startidx, endidx = 1,1
     print(startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
+
+    print("displaying map")
     errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
+
+    '''
+    for i in range(len(startwalkingroute)):
+        for j in range(len(endwalkingroute)):
+            errorcheck = displaymap(self, startwalkingroute[i], buspaths[i][j],
+                                    endwalkingroute[j])
+            time.sleep(5)
+    '''
     if errorcheck == -1:
         msgbox.showerror("Error", "Drawing Map Failed")
+
     #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
     print("Time taken is:", time.time() - starttime)
 
@@ -297,17 +314,17 @@ def astaralgo(self, startNode, endNode):
         for name in self.controller.hdbdf['name']:
             #if edgesarr[i][0] == name or edgesarr[i][3] == name:
             G.add_edge(edgesarr[i][0], edgesarr[i][3], weight= edgesarr[i][6])
-    print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
+    #print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
 
     hdbarr = self.controller.hdbdf.to_numpy()
-    for i in range(5):
-        print(hdbarr[i])
+    #for i in range(5):
+        #print(hdbarr[i])
     for i in range(len(hdbarr)):
         value = getdistance(hdbarr[i][2], hdbarr[i][1], endNode[2], endNode[1])
         G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
     endtime = time.time() - starttime
     print("Graph Added.")
-    print(G.nodes(data=True))
+    #print(G.nodes(data=True))
     print("Time Taken to add nodes is", endtime)
 
     starttime = time.time()
@@ -357,7 +374,7 @@ def drawmap(self, path):
 
         # print(self.controller.routelong)
     route = list(zip(lat, long))
-    print(route)
+    #print(route)
     return route
 
 # @app.route('/')
@@ -380,16 +397,35 @@ def displaymap(self, start, middle, end):
 
     pathdict = middle[1]
     for key, values in pathdict.items():
+
         if len(values) == 1:
+            print(key, values)
             continue
+
         else:
             temppath = []
+
+            if key == "walk":
+                print(values)
+                for i in values:
+                    print(i)
+                    searchdf = busdf[busdf['fromNode'] == i]
+                    busarr = searchdf.to_numpy()
+                    print(busarr[0][1], busarr[0][2], busarr[0][3])
+                    temppath.append((busarr[0][3], busarr[0][2]))
+                    buspath.append(temppath)
+                continue
+
             searchdf = busdf[busdf['bus number'] == key]
             busarr = searchdf.to_numpy()
             idx = 0
-            starttemp = busarr[idx][1]
+            try:
+                starttemp = busarr[idx][1]
+            except IndexError:
+                print(key)
+                print(middle)
             if len(busarr) == 0:
-                return -1
+                continue
             while busarr[idx][0] == key:
                 if starttemp != values[0]:
                     idx += 1
@@ -420,6 +456,8 @@ def displaymap(self, start, middle, end):
 
     map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
 
+
+
     for i in range(len(route)):
         for j in range(len(route[i])):
             #if i%2 == 0 and j == len(route[i])-1:
@@ -428,7 +466,7 @@ def displaymap(self, start, middle, end):
         # popup=names[]
 
         folium.PolyLine(route[i], color="red").add_to(map)
-        #
+
 
     for eachbus in buspath:
         for i in range(len(eachbus)):

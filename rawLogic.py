@@ -33,7 +33,7 @@ def AStar(graph, start, end):
 
 	while True:
 		if len(openlist) == 0:
-			print("No paths found.")
+			#print("No paths found.")
 			backtrack(graph, curNode, path, closedlist)
 
 		if len(path) > 2:
@@ -62,11 +62,12 @@ def AStar(graph, start, end):
 				#collective dist, need times walking time
 				#average walking speed is ~5kmh (4.988...kmh) / ~1.3889m/s
 				print("Path found!\nCollective dist: ", graph.nodes[end]['gVal'])
+				#print(path)
 				return path, graph.nodes[end]['gVal']
 
 		closedlist.append(curNode)
-		print(path)
+		#print(path)
 	runcounter += 1
 	if runcounter % 10000 == 0: print(time.time() - tim, path)
-	print("no path found")
+	print("No Path Found")
 	return -1,-1
