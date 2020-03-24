@@ -369,12 +369,12 @@ def displaymap(self, start, middle, end):
     # printing out the path -- Walking (WIP)
     # hdbarr = self.controller.hdbdf.to_numpy()
 
-    route = [0 for x in range(3)]
+    route = [0 for x in range(2)]
     route[0] = drawmap(self, start[0])
-    route[2] = drawmap(self, end[0])
+    route[1] = drawmap(self, end[0])
 
     # route[1] = drawmap(self, middle)
-    route[1], buspath = [], []
+    buspath = []
     dist = 0
     busdf = self.controller.busedgesdf.copy(deep=True)
 
@@ -383,6 +383,7 @@ def displaymap(self, start, middle, end):
         if len(values) == 1:
             continue
         else:
+            temppath = []
             searchdf = busdf[busdf['bus number'] == key]
             busarr = searchdf.to_numpy()
             idx = 0
@@ -398,46 +399,65 @@ def displaymap(self, start, middle, end):
                     starttemp = busarr[idx][1]
 
                 else:
-                    buspath.append((busarr[idx][3], busarr[idx][2]))
+                    temppath.append((busarr[idx][3], busarr[idx][2]))
                     break
 
             endtemp = busarr[idx][4]
             while busarr[idx][0] == key:
                 if endtemp != values[-1]:
-                    buspath.append((busarr[idx][6], busarr[idx][5]))
+                    temppath.append((busarr[idx][6], busarr[idx][5]))
                     idx += 1
                     if idx == len(busarr):
                         print("start, end = ", key, starttemp, values[-1])
                         return -1
                     endtemp = busarr[idx][4]
                 else:
-                    buspath.append((busarr[idx][6], busarr[idx][5]))
+                    temppath.append((busarr[idx][6], busarr[idx][5]))
                     break
+            buspath.append(temppath)
     print(buspath)
-    route[1] = buspath
+    #route[1] = buspath
 
     map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
 
-    for i in range(3):
+    for i in range(len(route)):
         for j in range(len(route[i])):
             #if i%2 == 0 and j == len(route[i])-1:
                 #continue
-            if i%2 == 0:
-                folium.Marker(route[i][j]).add_to(map)
+            folium.Marker(route[i][j]).add_to(map)
         # popup=names[]
-        if i%2 == 0:
-            folium.PolyLine(route[i], color="red").add_to(map)
-        else:
-            folium.PolyLine(route[i], color="blue").add_to(map)
+
+        folium.PolyLine(route[i], color="red").add_to(map)
+        #
+
+    for eachbus in buspath:
+        for i in range(len(eachbus)):
+            if i == 0 or i == len(eachbus):
+                folium.Marker(eachbus[i]).add_to(map)
+            else:
+                continue
+        folium.PolyLine(eachbus, color="blue").add_to(map)
+
+
     endtime = time.time() - starttime
     print("Time Taken is", endtime)
 
     map.save("static/map.html")
+    #call function to write route.html
+    #returnval = writehtml(start, middle, end)
+    # if returnval == -1:
+    #
+
     #webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
     webbrowser.open("http://127.0.0.1:5000")
     self.controller.show_frame("SearchPage")
     return 0
 
+def writehtml(self, start, middle, end):
+    #start is the list of walking to first bus stop
+    #middle is list with dictionary in 2nd position ,-3 transfers, -2 distance, -1 time
+    #end is the list of walking from end bus stop to dest
+    pass
 
 def binSearch(self, df, query, query2):
     searchdf = df.copy(deep=True)
