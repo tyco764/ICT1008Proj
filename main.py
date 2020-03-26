@@ -56,7 +56,7 @@ class SampleApp(tk.Tk):
         self.routelong = []
 
         self.frames = {}
-        for F in (StartPage, SearchPage, AlgoPage,):
+        for F in (StartPage, SearchPage,):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
 
@@ -114,62 +114,55 @@ class SearchPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        h1 = Font(family="Helvetica", size=28)  # weight="bold"
+        self.runninglabel = tk.Label(self, text="Path Finder", font = Font(family="Helvetica", size=24, weight="bold"))
+        self.runninglabel.place(x=40, y=30)
+
+        h1 = Font(family="Helvetica", size=20)  # weight="bold"
         startlabel = tk.Label(self, text="Start:", font=h1)
-        startlabel.place(x=90, y=98)
+        startlabel.place(x=85, y=90)
 
         startdest = tk.StringVar()
         startdest.set("Cove LRT")
         self.start = tk.Entry(self, justify='left', text=startdest)
         self.start.focus()
-        self.start.place(x=203, y=100, width=250, height=50)
+        self.start.place(x=200, y=90, width=250, height=50)
 
         endlabel = tk.Label(self, text="End:", font=h1)
-        endlabel.place(x=90, y=180)
+        endlabel.place(x=85, y=150)
 
         # large_font = ('Verdana', 14)
         enddest = tk.StringVar()
         enddest.set("293")
         self.end = tk.Entry(self, justify='left', text=enddest)
-        self.end.place(x=203, y=180, width=250, height=50)
+        self.end.place(x=200, y=150, width=250, height=50)
         self.end.bind('<Return>')
-
-        self.search_btn = tk.Button(self, text="Search", command=lambda: binSearch(self, self.controller.hdbdf,
-                                                                                   startdest, enddest))
-        self.search_btn.place(x=200, y=290, width=100, height=50)
-
-
-class AlgoPage(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
 
         options = ["Least Transfer", "Shortest Time", "Least Walking"]
         option = tk.StringVar()
         option.set(options[1])
         optionmenu = tk.OptionMenu(self, option, *options)
-        optionmenu.place(x=100, y= 100, width=120, height=50)
+        optionmenu.place(x=120, y=230, width=120, height=43)
 
-        but = tk.Button(self, text="Best Route", command=lambda: threadalgo(self, option.get()))
-        but.place(x=200, y=190, width=100, height=50)
-
-        but2 = tk.Button(self, text="Bus Route Test", command=lambda: astaralgo(self, 'Cove LRT', 'Cove LRT'))
-        but2.place(x=310, y=190, width=100, height=50)
-
-        button = tk.Button(self, text="Search Again",
-                           command=lambda: [controller.show_frame("SearchPage")])
-        button.pack()
-        button.place(x=200, y=290, width=100, height=50, )
+        self.search_btn = tk.Button(self, text="Find Path",
+                                    command=lambda: threadalgo(self, option.get(), startdest, enddest))
+        self.search_btn.place(x=260, y=230, width=100, height=40)
 
         returnbtn = tk.Button(self, text="Return",
-                           command=lambda: [controller.show_frame("StartPage")])
+                              command=lambda: [controller.show_frame("StartPage"),
+                                               self.runninglabel.config(text='Path Finder')])
         returnbtn.pack()
-        returnbtn.place(x=310, y=290, width=100, height=50, )
+        returnbtn.place(x=200, y=290, width=100, height=50)
 
-def threadalgo(self, option):
-    callthread = threading.Thread(target=callalgo, args=[self, option])
-    callthread.start()
+
+def threadalgo(self, option, startdest, enddest):
+    result = binSearch(self, self.controller.hdbdf,startdest, enddest)
+
+    if result == -1:
+        msgbox.showerror("Error", "Cannot Find what you are looking for!")
+    else:
+        self.runninglabel.config(text='Finding Path...')
+        callthread = threading.Thread(target=callalgo, args=[self, option])
+        callthread.start()
 
 def callalgo(self, option):
     starttime = time.time()
@@ -275,10 +268,11 @@ def callalgo(self, option):
             else:
                 path = buspaths[i][j]
                 if path is not None:
-                    if path[optionvalue] < tempmin:
+                    mintime = path[optionvalue] + (minwalkdist[i][j] / 1000) / 4 * 60
+                    if mintime < tempmin:
                         startidx = i
                         endidx = j
-                        tempmin = path[optionvalue]
+                        tempmin = mintime
 
             if buspaths[i][j] is not None:
                 print(startwalkingroute[i], buspaths[i][j], endwalkingroute[j])
@@ -301,6 +295,7 @@ def callalgo(self, option):
         msgbox.showerror("Error", "Drawing Map Failed")
 
     #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
+    self.runninglabel.config(text='Path Found!')
     print("Time taken is:", time.time() - starttime)
 
 
@@ -507,13 +502,12 @@ def binSearch(self, df, query, query2):
     endvalue = binSearchAlgo(self, searcharr, query2.get(), 0)
 
     if startvalue is None or endvalue is None:
-        msgbox.showerror("Error", "Cannot Find what you are looking for!")
-        self.controller.show_frame("SearchPage")
+        return -1
     else:
         self.controller.startdest = [query.get(), searcharr[startvalue][2], searcharr[startvalue][1]]
         self.controller.enddest = [query2.get(), searcharr[endvalue][2], searcharr[endvalue][1]]
         print(self.controller.startdest, "\n", self.controller.enddest)
-        self.controller.show_frame("AlgoPage")
+        return 1
 
 
 def binSearchAlgo(self, array, query, col):
