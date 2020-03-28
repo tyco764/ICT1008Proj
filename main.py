@@ -132,7 +132,7 @@ class SearchPage(tk.Frame):
 
         # large_font = ('Verdana', 14)
         enddest = tk.StringVar()
-        enddest.set("293")
+        enddest.set("623B")
         self.end = tk.Entry(self, justify='left', text=enddest)
         self.end.place(x=200, y=150, width=250, height=50)
         self.end.bind('<Return>')
@@ -370,6 +370,7 @@ def drawmap(self, path):
         # print(self.controller.routelong)
     route = list(zip(lat, long))
     #print(route)
+    print("DrawMap Done")
     return route
 
 # @app.route('/')
@@ -439,8 +440,11 @@ def displaymap(self, start, middle, end):
                     temppath.append((busarr[idx][6], busarr[idx][5]))
                     idx += 1
                     if idx == len(busarr):
-                        print("start, end = ", key, starttemp, values[-1])
-                        return -1
+                        if (key == 'LRT' or key == 'LRT Reverse'):
+                            idx = 0
+                        else:
+                            print("start, end = ", key, starttemp, values[-1])
+                            return -1
                     endtemp = busarr[idx][4]
                 else:
                     temppath.append((busarr[idx][6], busarr[idx][5]))
