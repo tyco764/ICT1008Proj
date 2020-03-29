@@ -40,6 +40,9 @@ class SampleApp(tk.Tk):
 
         self.startdest = []
         self.enddest = []
+        self.start = []
+        self.middle = []
+        self.end = []
 
         self.hdbdf = pd.DataFrame()
         self.edgesdf = pd.DataFrame()
@@ -169,9 +172,10 @@ def callalgo(self, option):
     if option == 'Walking Only':
         print(self.controller.startdest, self.controller.enddest)
         path, walkingdist = astaralgo(self, self.controller.startdest, self.controller.enddest)
+        self.controller.start = path
         walkingroute = [path, walkingdist]
         print(walkingroute)
-        displaymap(self, walkingroute, None, None)
+        displaymap(self, walkingroute, None, None, [path, None])
     else:
         busnodes = self.controller.busnodesdf.values.tolist()
         startwalkingroute, endwalkingroute = [], []
@@ -289,15 +293,9 @@ def callalgo(self, option):
         print(startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
 
         print("displaying map")
-        errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
+        errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx],
+                                [startwalkingroute[startidx][0],endwalkingroute[endidx][0]])
 
-        '''
-        for i in range(len(startwalkingroute)):
-            for j in range(len(endwalkingroute)):
-                errorcheck = displaymap(self, startwalkingroute[i], buspaths[i][j],
-                                        endwalkingroute[j])
-                time.sleep(5)
-        '''
         if errorcheck == -1:
             msgbox.showerror("Error", "Drawing Map Failed")
 
@@ -326,6 +324,7 @@ def astaralgo(self, startNode, endNode):
     for i in range(len(hdbarr)):
         value = getdistance(hdbarr[i][2], hdbarr[i][1], endNode[1], endNode[2])
         G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
+
     endtime = time.time() - starttime
     print("Graph Added.")
     #print(G.nodes(data=True))
@@ -334,6 +333,7 @@ def astaralgo(self, startNode, endNode):
     starttime = time.time()
     #print(startNode)
     #endNode = self.controller.enddest[0]
+    print(startNode, endNode)
     path,walkingdist = rawLogic.AStar(G, startNode[0], endNode[0])
     return path, walkingdist
 
@@ -383,35 +383,28 @@ def drawmap(self, path):
     return route
 
 # @app.route('/')
-def displaymap(self, start, middle, end):
+def displaymap(self, start, middle, end, pathnames):
     # takes in an array of latitude and longitude and draws them onto openstreetmap
     starttime = time.time()
     map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
-    #self.controller.route = start
-
-    # printing out the path -- Walking (WIP)
-    # hdbarr = self.controller.hdbdf.to_numpy()
 
     #Drawing Route for Walking Routes
-
     route = [None for x in range(2)]
     route[0] = drawmap(self, start[0])
     print(route[0])
     if end is not None:
         route[1] = drawmap(self, end[0])
-        print(route[1][1])
+        #print(route[1][1])
     for i in range(len(route)):
         if route[i] is not None:
             for j in range(len(route[i])):
-                #if i%2 == 0 and j == len(route[i])-1:
-                    #continue
-                folium.Marker(route[i][j]).add_to(map)
-            #popup=names[]
+                if 'Way' not in pathnames[i][j]:
+                    folium.Marker(location=route[i][j], popup=pathnames[i][j]).add_to(map)
             folium.PolyLine(route[i], color="red").add_to(map)
 
     #Drawing Route for Bus Routes
     if middle is not None:
-        buspath = []
+        buspath, buspathname = [], []
         dist = 0
         busdf = self.controller.busedgesdf.copy(deep=True)
 
@@ -474,15 +467,18 @@ def displaymap(self, start, middle, end):
                         temppath.append((busarr[idx][6], busarr[idx][5]))
                         break
                 buspath.append(temppath)
+                buspathname.append([values[0], values[-1]])
         #print(buspath)
 
-        for eachbus in buspath:
-            for i in range(len(eachbus)):
-                if i == 0 or i == len(eachbus):
-                    folium.Marker(eachbus[i]).add_to(map)
+        for i in range(len(buspath)):
+            for j in range(len(buspath[i])):
+                if j == 0:
+                    folium.Marker(location=buspath[i][j], popup=buspathname[i][0]).add_to(map)
+                elif j == len(buspath[i]):
+                    folium.Marker(location=buspath[i][j], popup=buspathname[i][-1]).add_to(map)
                 else:
                     continue
-            folium.PolyLine(eachbus, color="blue").add_to(map)
+            folium.PolyLine(buspath[i], color="blue").add_to(map)
 
 
     endtime = time.time() - starttime

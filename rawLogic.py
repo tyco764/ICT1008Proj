@@ -10,8 +10,11 @@ def sortLowF(graph, list1):
 
 def backtrack(graph, curNode, path, closedlist):
 	path.remove(curNode)
+	print("Removed:", curNode)
+	closedlist.append(curNode)
 	if len(path) != 0:
-		curNode = path[len(path)-1]
+		print("Path in Backtrack:", path)
+		curNode = path[-1]
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 
 
@@ -35,25 +38,43 @@ def AStar(graph, start, end):
 		if len(openlist) == 0:
 			#print("No paths found.")
 			backtrack(graph, curNode, path, closedlist)
-
+			print("1")
+		'''
 		if len(path) > 2:
-			if graph.nodes[path[len(path)-1]]['hVal'] > graph.nodes[path[len(path)-2]]['hVal']:
+			if graph.nodes[path[-1]]['hVal'] > graph.nodes[path[-2]]['hVal']:
 				backtrack(graph, curNode, path, closedlist)
+				print("2")
+		'''
+		if len(path) > 2:
+			for i in path:
+				temp = path[-1]
+				if i != path[-1]:
+					if temp in graph.neighbors(i):
+						while path[-1] != i:
+							print("i: ", i, "path[-1]", path[-1])
+							path.pop(-1)
+						path.append(temp)
+
 		try:
 			curNode = sortLowF(graph, openlist)[0]
+			print("Curnode in try: ", curNode)
 		except IndexError:
 			if len(path) == 0:
 				break
 			else:
-				curNode = path[len(path) -1]
+				curNode = path[-1]
 				backtrack(graph, curNode, path, closedlist)
+				print("3")
 
 		path.append(curNode)
+		print("Curnode Appended: ", curNode)
+
 		openlist = [x for x in list(graph.neighbors(curNode)) if x not in closedlist]
 		for x in openlist:
 			graph.nodes[x]['gVal'] = graph.nodes[curNode]['gVal'] + graph.edges[curNode, x]['weight']
 			try:
 				graph.nodes[x]['fVal'] = graph.nodes[x]['gVal'] + graph.nodes[x]['hVal']
+				print(x, "fVal=", graph.nodes[x]['fVal'])
 			except KeyError:
 				print(x)
 				return
