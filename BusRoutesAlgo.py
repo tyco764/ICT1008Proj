@@ -195,7 +195,7 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
                             else:
                                 start = main.binSearchAlgo(self, busarr, current[i][j], 0)
                                 end = main.binSearchAlgo(self, busarr, end_point, 0)
-                                dist = main.getdistance(busarr[start][2], busarr[start][1], busarr[end][2], busarr[end][1])
+                                dist = main.getdistance(busarr[start][1], busarr[start][2], busarr[end][1], busarr[end][2])
                                 totalDistance += dist
                                 time += (dist / 1000) / 4 * 60
 
