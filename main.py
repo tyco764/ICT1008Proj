@@ -169,10 +169,13 @@ def threadalgo(self, option, startdest, enddest):
 
 def callalgo(self, option):
     starttime = time.time()
-    if option == 'Walking Only':
-        print(self.controller.startdest, self.controller.enddest)
-        path, walkingdist = astaralgo(self, self.controller.startdest, self.controller.enddest)
-        self.controller.start = path
+
+    print(self.controller.startdest, self.controller.enddest)
+    path, walkingdist = astaralgo(self, self.controller.startdest, self.controller.enddest)
+    print(path, walkingdist)
+    self.controller.start = path
+
+    if (walkingdist < 500 or option == 'Walking Only') and option != 'Least Walking':
         walkingroute = [path, walkingdist]
         print(walkingroute)
         displaymap(self, walkingroute, None, None, [path, None])
@@ -238,6 +241,8 @@ def callalgo(self, option):
         for i in range(len(endwalkingroute)):
             print("end walking route", endwalkingroute[i])
 
+        print("Time Take to get walking route: ", time.time() - starttime)
+
         buspaths = [[None for x in range(3)] for y in range(3)]
 
         #"Least Transfer", "Shortest Time", "Least Walking"
@@ -260,6 +265,7 @@ def callalgo(self, option):
                 res.sort(key=lambda x: x[optionvalue])
                 buspaths[i][j] = res[0]
         #buspaths[0][0] = buspaths[0][2]
+        print("Time Take to get bus paths: ", time.time() - starttime)
 
         print(len(buspaths))
         #print(buspaths[0])
@@ -291,17 +297,17 @@ def callalgo(self, option):
         #buspaths[0].sort(key = lambda x: x[-1])
         #startidx, endidx = 1,1
         print(startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
-
+        print("Time Take to get best path: ", time.time() - starttime)
         print("displaying map")
         errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx],
                                 [startwalkingroute[startidx][0],endwalkingroute[endidx][0]])
-
+        print("Time Take to draw and display map: ", time.time() - starttime)
         if errorcheck == -1:
             msgbox.showerror("Error", "Drawing Map Failed")
 
     #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
     self.runninglabel.config(text='Path Found!')
-    print("Time taken is:", time.time() - starttime)
+    print("Time taken is to find and draw path is:", time.time() - starttime)
 
 
 def astaralgo(self, startNode, endNode):
@@ -427,6 +433,7 @@ def displaymap(self, start, middle, end, pathnames):
                         print(busarr[0][1], busarr[0][2], busarr[0][3])
                         temppath.append((busarr[0][3], busarr[0][2]))
                         buspath.append(temppath)
+                        buspathname.append([values[0], values[-1]])
                     continue
 
                 searchdf = busdf[busdf['bus number'] == key]
@@ -435,6 +442,7 @@ def displaymap(self, start, middle, end, pathnames):
                 try:
                     starttemp = busarr[idx][1]
                 except IndexError:
+                    print("Index Error")
                     print(key)
                     print(middle)
                 if len(busarr) == 0:
@@ -469,7 +477,6 @@ def displaymap(self, start, middle, end, pathnames):
                 buspath.append(temppath)
                 buspathname.append([values[0], values[-1]])
         #print(buspath)
-
         for i in range(len(buspath)):
             for j in range(len(buspath[i])):
                 if j == 0:
