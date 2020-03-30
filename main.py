@@ -50,7 +50,7 @@ class SampleApp(tk.Tk):
         self.busroutedf = pd.DataFrame()
         self.busnodesdf = pd.DataFrame()
 
-        #debug
+        # debug
         pd.set_option('display.max_columns', 10)
         pd.set_option('display.width', 500)
 
@@ -90,7 +90,7 @@ class StartPage(tk.Frame):
         folder_entry.place(x=200, y=100, width=160, height=50)
 
         folder_filebtn = tk.Button(self, text='Browse',
-                                  command=lambda: enter_file(self, folder))
+                                   command=lambda: enter_file(self, folder))
         folder_filebtn.pack()
         folder_filebtn.place(x=380, y=100, width=100, height=50)
 
@@ -101,7 +101,7 @@ class StartPage(tk.Frame):
 
 def enter_file(self, entry):
     # set default filetype and restrict user to select CSV files only
-    #filetype = [("CSV file", "*.csv")]
+    # filetype = [("CSV file", "*.csv")]
     folder = filedialog.askdirectory()
 
     if folder != "":
@@ -117,7 +117,7 @@ class SearchPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        self.runninglabel = tk.Label(self, text="Path Finder", font = Font(family="Helvetica", size=24, weight="bold"))
+        self.runninglabel = tk.Label(self, text="Path Finder", font=Font(family="Helvetica", size=24, weight="bold"))
         self.runninglabel.place(x=40, y=30)
 
         h1 = Font(family="Helvetica", size=20)  # weight="bold"
@@ -158,7 +158,7 @@ class SearchPage(tk.Frame):
 
 
 def threadalgo(self, option, startdest, enddest):
-    result = binSearch(self, self.controller.hdbdf,startdest, enddest)
+    result = binSearch(self, self.controller.hdbdf, startdest, enddest)
 
     if result == -1:
         msgbox.showerror("Error", "Cannot Find what you are looking for!")
@@ -166,6 +166,7 @@ def threadalgo(self, option, startdest, enddest):
         self.runninglabel.config(text='Finding Path...')
         callthread = threading.Thread(target=callalgo, args=[self, option])
         callthread.start()
+
 
 def callalgo(self, option):
     starttime = time.time()
@@ -184,7 +185,7 @@ def callalgo(self, option):
         startwalkingroute, endwalkingroute = [], []
         midbusstop = []
 
-        #getting close bus stops for start dest
+        # getting close bus stops for start dest
 
         for i in range(len(busnodes)):
             test = getdistance(self.controller.startdest[1], self.controller.startdest[2],
@@ -212,7 +213,7 @@ def callalgo(self, option):
             else:
                 startwalkingroute.append([path, walkingdist])
 
-        #getting close bus stops for end dest
+        # getting close bus stops for end dest
         busnodes = self.controller.busnodesdf.values.tolist()
         endbusstop = []
         for i in range(len(busnodes)):
@@ -245,7 +246,7 @@ def callalgo(self, option):
 
         buspaths = [[None for x in range(3)] for y in range(3)]
 
-        #"Least Transfer", "Shortest Time", "Least Walking"
+        # "Least Transfer", "Shortest Time", "Least Walking"
         if option == 'Least Transfer':
             optionvalue = -3
         elif option == 'Shortest Time':
@@ -264,12 +265,14 @@ def callalgo(self, option):
                 res = busalgo(self, startpath[-1], endpath[0])
                 res.sort(key=lambda x: x[optionvalue])
                 buspaths[i][j] = res[0]
-        #buspaths[0][0] = buspaths[0][2]
+                for x in range(5):
+                    print(res[x])
+        # buspaths[0][0] = buspaths[0][2]
         print("Time Take to get bus paths: ", time.time() - starttime)
 
         print(len(buspaths))
-        #print(buspaths[0])
-        startidx , endidx = 0, 0
+        # print(buspaths[0])
+        startidx, endidx = 0, 0
         tempmin, mindist = 1000000, 0
         startlen, endlen = len(buspaths), len(buspaths[i])
 
@@ -294,18 +297,18 @@ def callalgo(self, option):
                 if buspaths[i][j] is not None:
                     print(startwalkingroute[i], buspaths[i][j], endwalkingroute[j])
         print(startidx, endidx)
-        #buspaths[0].sort(key = lambda x: x[-1])
-        #startidx, endidx = 1,1
+        # buspaths[0].sort(key = lambda x: x[-1])
+        # startidx, endidx = 1,1
         print(startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
         print("Time Take to get best path: ", time.time() - starttime)
         print("displaying map")
         errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx],
-                                [startwalkingroute[startidx][0],endwalkingroute[endidx][0]])
+                                [startwalkingroute[startidx][0], endwalkingroute[endidx][0]])
         print("Time Take to draw and display map: ", time.time() - starttime)
         if errorcheck == -1:
             msgbox.showerror("Error", "Drawing Map Failed")
 
-    #drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
+    # drawmap(self, startwalkingroute[i][0] + endwalkingroute[j][0])
     self.runninglabel.config(text='Path Found!')
     print("Time taken is to find and draw path is:", time.time() - starttime)
 
@@ -317,55 +320,52 @@ def astaralgo(self, startNode, endNode):
     edgesarr = self.controller.edgesdf.to_numpy()
 
     for i in range(len(edgesarr)):
-        #for name in self.controller.hdbdf['name']:
-            #if edgesarr[i][0] == name or edgesarr[i][3] == name:
-        #if edgesarr[i][0] == '622A' or edgesarr[i][0] == '186' or edgesarr[i][3] == '622A' or edgesarr[i][3] == '186':
-            #print(edgesarr[i])
-        G.add_edge(edgesarr[i][0], edgesarr[i][3], weight= edgesarr[i][6])
-    #print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
+        # for name in self.controller.hdbdf['name']:
+        # if edgesarr[i][0] == name or edgesarr[i][3] == name:
+        # if edgesarr[i][0] == '622A' or edgesarr[i][0] == '186' or edgesarr[i][3] == '622A' or edgesarr[i][3] == '186':
+        # print(edgesarr[i])
+        G.add_edge(edgesarr[i][0], edgesarr[i][3], weight=edgesarr[i][6])
+    # print(edgesarr[0][0], edgesarr[0][3], edgesarr[0][6])
 
     hdbarr = self.controller.hdbdf.to_numpy()
-    #for i in range(5):
-        #print(hdbarr[i])
+    # for i in range(5):
+    # print(hdbarr[i])
     for i in range(len(hdbarr)):
         value = getdistance(hdbarr[i][2], hdbarr[i][1], endNode[1], endNode[2])
         G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
 
     endtime = time.time() - starttime
     print("Graph Added.")
-    #print(G.nodes(data=True))
+    # print(G.nodes(data=True))
     print("Time Taken to add nodes is", endtime)
 
     starttime = time.time()
-    #print(startNode)
-    #endNode = self.controller.enddest[0]
+    # print(startNode)
+    # endNode = self.controller.enddest[0]
     print(startNode, endNode)
-    path,walkingdist = rawLogic.AStar(G, startNode[0], endNode[0])
+    path, walkingdist = rawLogic.AStar(G, startNode[0], endNode[0])
     return path, walkingdist
 
 
 def busalgo(self, start_point, end_point):
-    #busnum = '3 Reverse'
-    #test = bus.getdist(self, busnum, start_point, end_point)
+    # busnum = '3 Reverse'
+    # test = bus.getdist(self, busnum, start_point, end_point)
 
-    #start_point = 'Opp Blk 103A (65071)'
-    #end_point = 'Punggol Temp Int (65009)'
+    # start_point = 'Opp Blk 103A (65071)'
+    # end_point = 'Punggol Temp Int (65009)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
     busnodesarr = self.controller.busnodesdf.to_numpy()
-    #busnodesarr is the array with the opposite bus stops in busnodesarr[3]
-
-
+    # busnodesarr is the array with the opposite bus stops in busnodesarr[3]
 
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
-        #print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
+        # print(bus.getdist(self, '136', 'Punggol Temp Int (65009)', 'Punggol Sec/Blk 601B (65281'))
         least_stops_print = bus.BusAlgo(self, busnodesarr, csv_file, csvdata, start_point, end_point)
-        #print(least_stops_print)
-        #for i in range(len(least_stops_print)):
-            #print(least_stops_print[i])
+        # print(least_stops_print)
+        # for i in range(len(least_stops_print)):
+        # print(least_stops_print[i])
         print("End of Paths")
         return least_stops_print
-
 
 
 def drawmap(self, path):
@@ -384,9 +384,10 @@ def drawmap(self, path):
 
         # print(self.controller.routelong)
     route = list(zip(lat, long))
-    #print(route)
+    # print(route)
     print("DrawMap Done")
     return route
+
 
 # @app.route('/')
 def displaymap(self, start, middle, end, pathnames):
@@ -394,13 +395,13 @@ def displaymap(self, start, middle, end, pathnames):
     starttime = time.time()
     map = folium.Map(location=[1.4029, 103.9063], zoom_start=16)
 
-    #Drawing Route for Walking Routes
+    # Drawing Route for Walking Routes
     route = [None for x in range(2)]
     route[0] = drawmap(self, start[0])
     print(route[0])
     if end is not None:
         route[1] = drawmap(self, end[0])
-        #print(route[1][1])
+        # print(route[1][1])
     for i in range(len(route)):
         if route[i] is not None:
             for j in range(len(route[i])):
@@ -408,7 +409,7 @@ def displaymap(self, start, middle, end, pathnames):
                     folium.Marker(location=route[i][j], popup=pathnames[i][j]).add_to(map)
             folium.PolyLine(route[i], color="red").add_to(map)
 
-    #Drawing Route for Bus Routes
+    # Drawing Route for Bus Routes
     if middle is not None:
         buspath, buspathname = [], []
         dist = 0
@@ -476,7 +477,7 @@ def displaymap(self, start, middle, end, pathnames):
                         break
                 buspath.append(temppath)
                 buspathname.append([values[0], values[-1]])
-        #print(buspath)
+        # print(buspath)
         for i in range(len(buspath)):
             for j in range(len(buspath[i])):
                 if j == 0:
@@ -487,7 +488,6 @@ def displaymap(self, start, middle, end, pathnames):
                     continue
             folium.PolyLine(buspath[i], color="blue").add_to(map)
 
-
     endtime = time.time() - starttime
     print("Time Taken to Draw Map is", endtime)
 
@@ -495,15 +495,16 @@ def displaymap(self, start, middle, end, pathnames):
     writehtml(self, start, middle, end)
     if writehtml == -1:
         print("Error in either the start, middle or end.")
-    #call function to write route.html
-    #returnval = writehtml(start, middle, end)
+    # call function to write route.html
+    # returnval = writehtml(start, middle, end)
     # if returnval == -1:
     #
 
-    #webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
+    # webbrowser.get("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s").open_new("map.html")
     webbrowser.open("http://127.0.0.1:5000")
     self.controller.show_frame("SearchPage")
     return 0
+
 
 def writehtml(self, start, middle, end):
     startTr = ""
@@ -528,7 +529,6 @@ def writehtml(self, start, middle, end):
             i += 1
             step += 1
 
-
     if middle[-2] > 0:
         if isinstance(middle[1], dict):
             extractedDict = middle[1]
@@ -537,13 +537,25 @@ def writehtml(self, start, middle, end):
                 if dict_keys[j] == 'walk':
                     walkLen = len(extractedDict['walk'])
                     walk = extractedDict['walk']
-                    for k in range(walkLen-1):
-                        middleTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % ((step + k + 1), walk[k], walk[k + 1])
+                    for k in range(walkLen - 1):
+                        step += 1
+                        middleTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % (
+                        (step), walk[k], walk[k + 1])
                 else:
                     buses = extractedDict[dict_keys[j]]
                     correctedDictKeys = [sub.replace(" Reverse", "") for sub in dict_keys]
-                    middleTr += "<tr><td>%d</td><td>Board bus %s, from %s to %s.</td></tr>" % ((step + j + 1), correctedDictKeys[j], buses[j], buses[-1])
-                step += 1
+                    if 'Transfer' in correctedDictKeys[j]:
+                        step += 1
+                        middleTr += "<tr><td>%d</td><td>Do a %s, from %s to %s.</td></tr>" % (
+                        (step), correctedDictKeys[j], buses[0], buses[-1])
+                    elif 'LRT' in correctedDictKeys[j]:
+                        step += 1
+                        middleTr += "<tr><td>%d</td><td>Board %s, from %s to %s.</td></tr>" % (
+                            (step), correctedDictKeys[j], buses[0], buses[-1])
+                    else:
+                        step += 1
+                        middleTr += "<tr><td>%d</td><td>Board Bus %s, from %s to %s.</td></tr>" % (
+                            (step), correctedDictKeys[j], buses[0], buses[-1])
 
     if end[-1] > 0:
         k = 0
@@ -565,10 +577,10 @@ def writehtml(self, start, middle, end):
     Html_file.write(endTr)
     Html_file.close()
 
-
     # start is the list of walking to first bus stop
     # middle is list with dictionary in 2nd position ,-3 transfers, -2 distance, -1 time
     # end is the list of walking from end bus stop to dest
+
 
 def getSizeOfNestedList(listOfElem):
     count = 0
@@ -581,6 +593,7 @@ def getSizeOfNestedList(listOfElem):
         else:
             count += 1
     return count
+
 
 def binSearch(self, df, query, query2):
     searchdf = df.copy(deep=True)
@@ -617,18 +630,21 @@ def binSearchAlgo(self, array, query, col):
 
 
 def csvreader(self):
-
-    #self.controller.filenames["folder"] = tk.filedialog.askdirectory()
-    print(self.controller.filenames["folder"]+self.controller.filenames["hdb"])
+    # self.controller.filenames["folder"] = tk.filedialog.askdirectory()
+    print(self.controller.filenames["folder"] + self.controller.filenames["hdb"])
 
     if self.controller.filenames["folder"] is not None:
         try:
-            #print(self.controller.filenames["folder"])
-            self.controller.hdbdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["hdb"])
-            self.controller.edgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["edges"])
-            self.controller.busedgesdf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busedges"])
-            self.controller.busroutedf = pd.read_csv(self.controller.filenames["folder"]+self.controller.filenames["busroute"])
-            self.controller.busnodesdf = pd.read_csv(self.controller.filenames["folder"] + self.controller.filenames["busnodes"])
+            # print(self.controller.filenames["folder"])
+            self.controller.hdbdf = pd.read_csv(self.controller.filenames["folder"] + self.controller.filenames["hdb"])
+            self.controller.edgesdf = pd.read_csv(
+                self.controller.filenames["folder"] + self.controller.filenames["edges"])
+            self.controller.busedgesdf = pd.read_csv(
+                self.controller.filenames["folder"] + self.controller.filenames["busedges"])
+            self.controller.busroutedf = pd.read_csv(
+                self.controller.filenames["folder"] + self.controller.filenames["busroute"])
+            self.controller.busnodesdf = pd.read_csv(
+                self.controller.filenames["folder"] + self.controller.filenames["busnodes"])
 
             print(self.controller.hdbdf.head(5), "\n")
             self.controller.show_frame("SearchPage")
@@ -662,6 +678,7 @@ def tk_main():
 
 def flask_main():
     app.run()
+
 
 @app.route("/")
 def indexpage():
