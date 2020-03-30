@@ -492,6 +492,9 @@ def displaymap(self, start, middle, end, pathnames):
     print("Time Taken to Draw Map is", endtime)
 
     map.save("static/map.html")
+    writehtml(self, start, middle, end)
+    if writehtml == -1:
+        print("Error in either the start, middle or end.")
     #call function to write route.html
     #returnval = writehtml(start, middle, end)
     # if returnval == -1:
@@ -503,10 +506,81 @@ def displaymap(self, start, middle, end, pathnames):
     return 0
 
 def writehtml(self, start, middle, end):
-    #start is the list of walking to first bus stop
-    #middle is list with dictionary in 2nd position ,-3 transfers, -2 distance, -1 time
-    #end is the list of walking from end bus stop to dest
-    pass
+    startTr = ""
+    middleTr = ""
+    endTr = ""
+    step = 0
+    message = """
+    <table border=1>
+         <tr>
+           <th>Step No.</th>
+           <th>Instructions</th>
+         </tr>
+         <indent>
+    """
+    if start[-1] > 0:
+        i = 0
+        trueStartLen = getSizeOfNestedList(start)
+        nestedStartLen = trueStartLen - 1  # Skip the last element which is distance
+        # print(trueStartLen, nestedStartLen)
+        while i < (nestedStartLen - 1):
+            startTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % ((i + 1), start[0][i], start[0][i + 1])
+            i += 1
+            step += 1
+
+
+    if middle[-2] > 0:
+        if isinstance(middle[1], dict):
+            extractedDict = middle[1]
+            dict_keys = list(extractedDict.keys())
+            for j in range(len(dict_keys)):
+                if dict_keys[j] == 'walk':
+                    walkLen = len(extractedDict['walk'])
+                    walk = extractedDict['walk']
+                    for k in range(walkLen-1):
+                        middleTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % ((step + k + 1), walk[k], walk[k + 1])
+                else:
+                    buses = extractedDict[dict_keys[j]]
+                    correctedDictKeys = [sub.replace(" Reverse", "") for sub in dict_keys]
+                    middleTr += "<tr><td>%d</td><td>Board bus %s, from %s to %s.</td></tr>" % ((step + j + 1), correctedDictKeys[j], buses[j], buses[-1])
+                step += 1
+
+    if end[-1] > 0:
+        k = 0
+        trueEndLen = getSizeOfNestedList(end)
+        nestedEndLen = trueEndLen - 1
+        print(trueEndLen, nestedEndLen)
+        while k < (nestedEndLen - 1):
+            endTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % ((step + k + 1), end[0][k], end[0][k + 1])
+            k += 1
+        endTr += "</indent></table>"
+
+    else:
+        return -1
+
+    Html_file = open("static/route.html", "w")
+    Html_file.write(message)
+    Html_file.write(startTr)
+    Html_file.write(middleTr)
+    Html_file.write(endTr)
+    Html_file.close()
+
+
+    # start is the list of walking to first bus stop
+    # middle is list with dictionary in 2nd position ,-3 transfers, -2 distance, -1 time
+    # end is the list of walking from end bus stop to dest
+
+def getSizeOfNestedList(listOfElem):
+    count = 0
+    # Iterate over the list
+    for elem in listOfElem:
+        # Check if type of element is list
+        if type(elem) == list:
+            # Again call this function to get the size of this element
+            count += getSizeOfNestedList(elem)
+        else:
+            count += 1
+    return count
 
 def binSearch(self, df, query, query2):
     searchdf = df.copy(deep=True)
