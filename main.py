@@ -529,46 +529,46 @@ def writehtml(self, start, middle, end):
             i += 1
             step += 1
 
-    if middle[-2] > 0:
-        if isinstance(middle[1], dict):
-            extractedDict = middle[1]
-            dict_keys = list(extractedDict.keys())
-            for j in range(len(dict_keys)):
-                if dict_keys[j] == 'walk':
-                    walkLen = len(extractedDict['walk'])
-                    walk = extractedDict['walk']
-                    for k in range(walkLen - 1):
-                        step += 1
-                        middleTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % (
-                        (step), walk[k], walk[k + 1])
-                else:
-                    buses = extractedDict[dict_keys[j]]
-                    correctedDictKeys = [sub.replace(" Reverse", "") for sub in dict_keys]
-                    if 'Transfer' in correctedDictKeys[j]:
-                        step += 1
-                        middleTr += "<tr><td>%d</td><td>Do a %s, from %s to %s.</td></tr>" % (
-                        (step), correctedDictKeys[j], buses[0], buses[-1])
-                    elif 'LRT' in correctedDictKeys[j]:
-                        step += 1
-                        middleTr += "<tr><td>%d</td><td>Board %s, from %s to %s.</td></tr>" % (
-                            (step), correctedDictKeys[j], buses[0], buses[-1])
+    if middle is not None:
+        if middle[-2] > 0:
+            if isinstance(middle[1], dict):
+                extractedDict = middle[1]
+                dict_keys = list(extractedDict.keys())
+                for j in range(len(dict_keys)):
+                    if dict_keys[j] == 'walk':
+                        walkLen = len(extractedDict['walk'])
+                        walk = extractedDict['walk']
+                        for k in range(walkLen - 1):
+                            step += 1
+                            middleTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % (
+                            (step), walk[k], walk[k + 1])
                     else:
-                        step += 1
-                        middleTr += "<tr><td>%d</td><td>Board Bus %s, from %s to %s.</td></tr>" % (
+                        buses = extractedDict[dict_keys[j]]
+                        correctedDictKeys = [sub.replace(" Reverse", "") for sub in dict_keys]
+                        if 'Transfer' in correctedDictKeys[j]:
+                            step += 1
+                            middleTr += "<tr><td>%d</td><td>Do a %s, from %s to %s.</td></tr>" % (
                             (step), correctedDictKeys[j], buses[0], buses[-1])
-
-    if end[-1] > 0:
-        k = 0
-        trueEndLen = getSizeOfNestedList(end)
-        nestedEndLen = trueEndLen - 1
-        print(trueEndLen, nestedEndLen)
-        while k < (nestedEndLen - 1):
-            endTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % ((step + k + 1), end[0][k], end[0][k + 1])
-            k += 1
-        endTr += "</indent></table>"
-
-    else:
-        return -1
+                        elif 'LRT' in correctedDictKeys[j]:
+                            step += 1
+                            middleTr += "<tr><td>%d</td><td>Board %s, from %s to %s.</td></tr>" % (
+                                (step), correctedDictKeys[j], buses[0], buses[-1])
+                        else:
+                            step += 1
+                            middleTr += "<tr><td>%d</td><td>Board Bus %s, from %s to %s.</td></tr>" % (
+                                (step), correctedDictKeys[j], buses[0], buses[-1])
+    if end is not None:
+        if end[-1] > 0:
+            k = 0
+            trueEndLen = getSizeOfNestedList(end)
+            nestedEndLen = trueEndLen - 1
+            print(trueEndLen, nestedEndLen)
+            while k < (nestedEndLen - 1):
+                endTr += "<tr><td>%d</td><td>From %s, walk to %s.</td></tr>" % ((step + k + 1), end[0][k], end[0][k + 1])
+                k += 1
+        else:
+            return -1
+    endTr += "</indent></table>"
 
     Html_file = open("static/route.html", "w")
     Html_file.write(message)
