@@ -570,11 +570,24 @@ def writehtml(self, start, middle, end):
             return -1
     endTr += "</indent></table>"
 
+    transfer = 0
+    if start[-1] > 0:
+        transfer += 1
+    if end[-1] > 0:
+        transfer += 1
+
+    endpara = "<p></p>" + \
+              "<table> " + "<tr> <td>Transfers</td> <td></td> <td>%s</td> </tr>" % (transfer + middle[-3]) + \
+              "<tr> <td>Distance</td> <td></td> <td>%2d km</td> </tr>" % (start[-1] + middle[-2] + end[-1]) + \
+              "<tr> <td>Time</td> <td></td> <td>%2d minutes</td> </tr>" % (((start[-1] + end[-1]) * 4 / 60 ) + end[-1]) + \
+              " </table"
+
     Html_file = open("static/route.html", "w")
     Html_file.write(message)
     Html_file.write(startTr)
     Html_file.write(middleTr)
     Html_file.write(endTr)
+    Html_file.write(endpara)
     Html_file.close()
 
     # start is the list of walking to first bus stop
