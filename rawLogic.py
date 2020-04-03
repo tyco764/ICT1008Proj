@@ -73,5 +73,5 @@ def AStar(graph, start, end):
 
 	runcounter += 1
 	if runcounter % 10000 == 0: print(time.time() - tim, path)
-	print("No Path Found")
+	print("No Walking Path Found")
 	return -1,0

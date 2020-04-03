@@ -158,6 +158,7 @@ class SearchPage(tk.Frame):
 
 
 def threadalgo(self, option, startdest, enddest):
+    #Check that start destination and end destination is inside dataset
     result = binSearch(self, self.controller.hdbdf, startdest, enddest)
 
     if result == -1:
@@ -169,22 +170,24 @@ def threadalgo(self, option, startdest, enddest):
 
 
 def callalgo(self, option):
+    #get start timing
     starttime = time.time()
 
-    print(self.controller.startdest, self.controller.enddest)
+    #get a walking path from start destination to end destination
     path, walkingdist = astaralgo(self, self.controller.startdest, self.controller.enddest)
     self.controller.start = path
 
-    if (walkingdist < 500 or option == 'Walking Only') and option != 'Least Walking':
+    #if start and end destination is close (500m) or option is Walking only
+    if (walkingdist < 500 and option != 'Least Walking') or option == 'Walking Only':
         walkingroute = [path, walkingdist]
         displaymap(self, walkingroute, None, None, [path, None])
     else:
+        #convert bus stops to 2d array
         busnodes = self.controller.busnodesdf.values.tolist()
         startwalkingroute, endwalkingroute = [], []
         midbusstop = []
 
-        # getting close bus stops for start dest
-
+        # check which bus stops are closest to start dest
         for i in range(len(busnodes)):
             test = getdistance(self.controller.startdest[1], self.controller.startdest[2],
                                busnodes[i][1], busnodes[i][2])
@@ -192,12 +195,12 @@ def callalgo(self, option):
 
         busnodes = sorted(busnodes, key=lambda x: x[4])
 
+        #Use the closest top 3 bus stops
         for i in range(3):
             midbusstop.append(busnodes[i])
 
-        print("StartNode: ", midbusstop[0], midbusstop[1], midbusstop[2])
 
-        # get walking route
+        # get walking route from start dest to close bus stops
         for i in list(midbusstop):
             if self.controller.startdest[0] == i[0]:
                 path = [i[0]]
@@ -209,9 +212,10 @@ def callalgo(self, option):
             else:
                 startwalkingroute.append([path, walkingdist])
 
-        # getting close bus stops for end dest
+        # getting which bus stops are closest to end dest
         busnodes = self.controller.busnodesdf.values.tolist()
         endbusstop = []
+
         for i in range(len(busnodes)):
             test = getdistance(self.controller.enddest[1], self.controller.enddest[2],
                                busnodes[i][1], busnodes[i][2])
@@ -221,9 +225,8 @@ def callalgo(self, option):
         for i in range(3):
             endbusstop.append(busnodes[i])
 
-        print("EndNode: ", endbusstop[0], endbusstop[1], endbusstop[2])
 
-        # get walking route
+        # get walking route from end dest to close bus stops
         for i in list(endbusstop):
             path, walkingdist = astaralgo(self, self.controller.enddest, i)
             if path == -1:
@@ -232,12 +235,14 @@ def callalgo(self, option):
                 path.reverse()
                 endwalkingroute.append([path, walkingdist])
 
-        print("Time Take to get walking route: ", time.time() - starttime)
+        print("Time Take to get walking routes: ", time.time() - starttime)
 
         buspaths = [[None for x in range(3)] for y in range(3)]
         minwalkdist = [[0 for x in range(3)] for y in range(3)]
 
+        #generate bus path from each starting bus stop to ending bus stops
         for i in range(len(startwalkingroute)):
+            print("Getting Bus Paths", i)
             for j in range(len(endwalkingroute)):
                 startpath = startwalkingroute[i][0]
                 endpath = endwalkingroute[j][0]
@@ -256,6 +261,8 @@ def callalgo(self, option):
         leasttransferpath = []
         leasttransferwalk = 0
 
+
+        #Get bus path, walking path based on options selected by User
         for i in range(startlen):
             for j in range(endlen):
                 walktime = (minwalkdist[i][j] / 1000) / 4 * 60
@@ -292,12 +299,17 @@ def callalgo(self, option):
                             endidx = j
                             tempmin = mintime
 
+        #Print Best Path
         print("Best Path:", startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx])
         print("Time Take to get best path: ", time.time() - starttime)
         print("Displaying map")
+
+        #Draw Path in folium map and display path in webbrowser
         errorcheck = displaymap(self, startwalkingroute[startidx], buspaths[startidx][endidx], endwalkingroute[endidx],
                                 [startwalkingroute[startidx][0], endwalkingroute[endidx][0]])
         print("Time Take to draw and display map: ", time.time() - starttime)
+
+        #Error Checking For Displaying Map
         if errorcheck == -1:
             msgbox.showerror("Error", "Drawing Map Failed")
 
@@ -311,32 +323,30 @@ def astaralgo(self, startNode, endNode):
     starttime = time.time()
     edgesarr = self.controller.edgesdf.to_numpy()
 
+    #Add edge to Graph
     for i in range(len(edgesarr)):
         G.add_edge(edgesarr[i][0], edgesarr[i][3], weight=edgesarr[i][6])
 
+    #Get distance between each node and end destination
     hdbarr = self.controller.hdbdf.to_numpy()
     for i in range(len(hdbarr)):
         value = getdistance(hdbarr[i][2], hdbarr[i][1], endNode[1], endNode[2])
         G.add_node(hdbarr[i][0], gVal=0, fVal=0, hVal=value)
 
     endtime = time.time() - starttime
-    print("Graph Added.")
-    print("Time Taken to add nodes is", endtime)
 
+    #Run Walking Algo and return path and distance
     path, walkingdist = rawLogic.AStar(G, startNode[0], endNode[0])
     return path, walkingdist
 
 
 def busalgo(self, start_point, end_point):
-    # busnum = '3 Reverse'
-    # test = bus.getdist(self, busnum, start_point, end_point)
 
-    # start_point = 'Opp Blk 103A (65071)'
-    # end_point = 'Punggol Temp Int (65009)'
     busfile = self.controller.filenames["folder"] + self.controller.filenames["busroute"]
     busnodesarr = self.controller.busnodesdf.to_numpy()
     # busnodesarr is the array with the opposite bus stops in busnodesarr[3]
 
+    #Run Bus Algo
     with open(busfile, mode='r') as csv_file:
         csvdata = csv.reader(csv_file, delimiter=',')
         least_stops_print = bus.BusAlgo(self, busnodesarr, csv_file, csvdata, start_point, end_point)
@@ -349,6 +359,7 @@ def drawmap(self, path):
     hdbarr = searchdf.to_numpy()
     hdbarr = hdbarr[np.argsort(hdbarr[:, 0])]
 
+    #Getting longitude and latitude for each node in the path and return as a list
     long = []
     lat = []
     for i in range(len(path)):
@@ -375,6 +386,7 @@ def displaymap(self, start, middle, end, pathnames):
         route[1] = drawmap(self, end[0])
     for i in range(len(route)):
         if route[i] is not None:
+            # Add longitude and latitude to folium map
             for j in range(len(route[i])):
                 if 'Way' not in pathnames[i][j]:
                     folium.Marker(location=route[i][j], popup=pathnames[i][j]).add_to(map)
@@ -396,7 +408,6 @@ def displaymap(self, start, middle, end, pathnames):
                 temppath = []
 
                 if key == "walk":
-                    print(values)
                     for i in values:
                         searchdf = busdf[busdf['fromNode'] == i]
                         busarr = searchdf.to_numpy()
@@ -442,6 +453,7 @@ def displaymap(self, start, middle, end, pathnames):
                 buspathname.append([values[0], values[-1]])
 
 
+        #Add longitude and latitude to folium map
         for i in range(len(buspath)):
             for j in range(len(buspath[i])):
                 if j == 0:
@@ -456,8 +468,9 @@ def displaymap(self, start, middle, end, pathnames):
     print("Time Taken to Draw Map is", endtime)
 
     map.save("static/map.html")
-    writehtml(self, start, middle, end)
-    if writehtml == -1:
+    #Write Path Instructions and Error Checking for Write Instructions
+    errorcheck = writehtml(self, start, middle, end)
+    if errorcheck == -1:
         msgbox.showerror("Error", "Error writing route instructions")
 
     webbrowser.open("http://127.0.0.1:5000")
@@ -474,6 +487,7 @@ def writehtml(self, start, middle, end):
     middleTr = ""
     endTr = ""
     step = 0
+    transfer = 0
     message = """
     <table border=1>
          <tr>
@@ -484,6 +498,7 @@ def writehtml(self, start, middle, end):
     """
 
     if start[-1] > 0:
+        transfer += 1
         i = 0
         trueStartLen = getSizeOfNestedList(start)
         nestedStartLen = trueStartLen - 1  # Skip the last element which is distance
@@ -522,6 +537,7 @@ def writehtml(self, start, middle, end):
                                 (step), correctedDictKeys[j], buses[0], buses[-1])
     if end is not None:
         if end[-1] > 0:
+            transfer += 1
             k = 0
             trueEndLen = getSizeOfNestedList(end)
             nestedEndLen = trueEndLen - 1
@@ -532,17 +548,19 @@ def writehtml(self, start, middle, end):
             return -1
     endTr += "</indent></table>"
 
-    transfer = 0
-    if start[-1] > 0:
-        transfer += 1
-    if end[-1] > 0:
-        transfer += 1
+    if middle is not None and end is not None:
+        endpara = "<p></p>" + \
+                  "<table> " + "<tr> <td>Transfers</td> <td></td> <td>%s</td> </tr>" % (transfer + middle[-3]) + \
+                  "<tr> <td>Distance</td> <td></td> <td>%.02f m</td> </tr>" % (start[-1] + middle[-2] + end[-1]) + \
+                  "<tr> <td>Time</td> <td></td> <td>%.02f minutes</td> </tr>" % (((start[-1] + end[-1]) * 4 / 60 ) + middle[-1]) + \
+                  " </table"
+    else:
+        endpara = "<p></p>" + \
+                  "<table> " + "<tr> <td>Transfers</td> <td></td> <td>%s</td> </tr>" % (transfer) + \
+                  "<tr> <td>Distance</td> <td></td> <td>%.02f m</td> </tr>" % (start[-1]) + \
+                  "<tr> <td>Time</td> <td></td> <td>%.02f minutes</td> </tr>" % ((start[-1] * 4 / 60)) + \
+                  " </table"
 
-    endpara = "<p></p>" + \
-              "<table> " + "<tr> <td>Transfers</td> <td></td> <td>%s</td> </tr>" % (transfer + middle[-3]) + \
-              "<tr> <td>Distance</td> <td></td> <td>%.02f m</td> </tr>" % (start[-1] + middle[-2] + end[-1]) + \
-              "<tr> <td>Time</td> <td></td> <td>%.02f minutes</td> </tr>" % (((start[-1] + end[-1]) * 4 / 60 ) + end[-1]) + \
-              " </table"
 
     Html_file = open("static/route.html", "w")
     Html_file.write(message)
