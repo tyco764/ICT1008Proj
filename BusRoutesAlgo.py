@@ -48,7 +48,7 @@ def getdist(self, bus, startstop, endstop):
     return distance
 
 
-
+#takes start stop and end stop and generate list of combinations of bus/lrt routes.
 def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
     thisBus = []
     oppBus = []
@@ -98,12 +98,12 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
             end.append(line)
         line += 1
 
-    # if (least_stops != 32):
-    #     return least_stops_print
-    # else:
+ 
+    #start bus/lrt ladder here to find all combinations of bus routes
     if(1 == 1):
         csv_file.seek(0)
-                      
+    
+    #get list of bus services with the particular start stop
         for i in start:  
             for j in range(i):
                 next(csvdata) #skip not matched buses
@@ -111,7 +111,7 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
             csv_file.seek(0)
         
         csv_file.seek(0)
-        
+    
         for i in end:
             for i in range(i):
                 next(csvdata)
@@ -119,6 +119,7 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
             csv_file.seek(0)
 
        
+       #start bus/lrt ladder with the buses/lrt from list of bus services with start stop
         answer = []
         mystart = collections.deque([]) 
         for i in start:
@@ -128,14 +129,18 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
             mystart.append(newBus)
       
         temparray = []
+        #start ladder loop
+        #limit combinations to 5 max
         while(mystart and len(mystart[0]) < 6):
-
+            #dequeue current from queue 
             current = mystart.popleft()
+
+            #make copies of current since need to reference and edit multiple times throughout algorithm
             backup = copy.deepcopy(current)
             backup2 = copy.deepcopy(current)
             backup3 = copy.deepcopy(current)
 
-            #check for answer
+            #miscellaneous code var initializarion to check if route has start and end stop 
             lastBus = list(current.keys())[-1]
             currentBus = 0;
             if(len(current[lastBus]) == 1):
@@ -149,22 +154,24 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
                     if(i in thisBus):
                         if(oppBus[thisBus.index(i)] != '0'):
                             myOppBus.append(oppBus[thisBus.index(i)])
-                
+
+                #check if last stop is in bus service || check if last stop is in any of the opposite stops of bus route 
+                #add to final list of possible routes
                 if ((end_point in currentBus and currentBus.index(end_point) >= currentBus.index(starting)) or end_point in myOppBus):
 
 
-
+                    #with walking to opposite bus stop
                     if(end_point in myOppBus): #walking code adding to dict
                         tempLastBus = thisBus[oppBus.index(end_point)]
                         current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(tempLastBus)+1])
                         current["walk"] = [current[lastBus][-1], end_point];
                         
-                       
+                    #without walking to opposite bus stop(current bus stop is the correct stop) 
                     else:
                         
                         current[lastBus] += (currentBus[currentBus.index(starting)+1:currentBus.index(end_point)+1])
 
-                    
+                    #miscellaneous code var initialization for calculating distance and time
                     keyCount = len(current.keys()) - 1 
 
                     mycount = 0
@@ -173,6 +180,8 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
 
                     totalDistance = 0
                     time = 0
+
+                    #calculate distance and time for route
                     for i in current.keys():
                         for j,stops in enumerate(current[i][:-1]): 
                             if(i != 'walk'):
@@ -192,29 +201,29 @@ def BusAlgo(self, busarr, csv_file, csvdata, start_point, end_point):
                         transfers -= 1
                     answer.append([mycount - keyCount - 1,current, transfers, totalDistance, time])
 
-
-            #appending part
+            #expanding bus/lrt ladder
+            
             for possibleRoute in new:
                 if possibleRoute[0] == lastBus:
                     currentBus = possibleRoute
                     break;
-
+            #increment current bus service by 1 bus stop
             if currentBus.index(backup[lastBus][-1]) + 1 < len(currentBus):
                
                 start = currentBus.index(backup[lastBus][-1])
                 end = currentBus.index(backup[lastBus][-1])
                 backup[lastBus].append(currentBus[start+1])
-
+                #add incremented current to queue
                 mystart.append(backup)
 
-
+            #find next possible combination of bus/lrt service and add to current 
             for possibleRoute in new:
 
                 if len([i for i in backup2.keys() if i in possibleRoute]) == 0  and backup2[lastBus][-1] in possibleRoute and len(backup2[lastBus]) > 1 and backup2[lastBus][-1] != end_point:
                     
                     temp = backup2[lastBus][-1]
                     backup2[possibleRoute[0]] = [temp]
-                    
+                    #add new combination current to queue
                     mystart.append(backup2)
 
                     backup2 = copy.deepcopy(backup3)
